@@ -98,7 +98,7 @@ export default function AboutPage() {
           It is an estimator, not a loan offer and not financial advice. Real
           payments can differ because of origination fees, discount points,
           mortgage insurance, property taxes, homeowners insurance, escrow
-          adjustments and the exact day interest starts accruing. Your lender's
+          adjustments and the exact day interest starts accruing. Your lender&apos;s
           Loan Estimate and Closing Disclosure are the documents that govern
           your actual loan. See our{" "}
           <Link
@@ -115,7 +115,7 @@ export default function AboutPage() {
         <p>
           LoanCalcly is free to use and funded by advertising and, where
           relevant, affiliate links. Advertising never influences the
-          calculator's output — the maths is the maths. Sponsored links, when
+          calculator&apos;s output — the maths is the maths. Sponsored links, when
           they appear, are labelled, and our{" "}
           <Link
             href="/disclaimer"

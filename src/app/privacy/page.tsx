@@ -88,7 +88,7 @@ export default function PrivacyPage() {
               and/or other websites on the internet.
             </>,
             <>
-              Google's use of advertising cookies enables it and its partners to
+              Google&apos;s use of advertising cookies enables it and its partners to
               serve ads to you based on your visits to this site and/or other
               sites on the internet.
             </>,
@@ -100,7 +100,7 @@ export default function PrivacyPage() {
               .
             </>,
             <>
-              You can also opt out of some third-party vendors' use of cookies
+              You can also opt out of some third-party vendors&apos; use of cookies
               for personalised advertising at{" "}
               <Ext href="https://www.aboutads.info/choices/">
                 www.aboutads.info
@@ -123,7 +123,7 @@ export default function PrivacyPage() {
         />
         <p>
           Advertisers may also use non-cookie technologies such as web beacons
-          or device identifiers. We do not control third-party vendors' data
+          or device identifiers. We do not control third-party vendors&apos; data
           practices; their own privacy policies govern them.
         </p>
         <p>

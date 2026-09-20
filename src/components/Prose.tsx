@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { relatedGuides, type Guide } from "@/lib/guides";
+import { relatedCalculators, type Calculator } from "@/lib/calculators";
 
 /* ── 排版原子 ─────────────────────────────────────────────── */
 
@@ -155,6 +156,16 @@ export function ArticleSchema({
   );
 }
 
+/** 结构化数据。传数组或单个对象都行。 */
+export function JsonLd({ data }: { data: unknown }) {
+  return (
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(data) }}
+    />
+  );
+}
+
 /** 指南底部：内链 + 免责 */
 export function ArticleFooter({ currentSlug }: { currentSlug: string }) {
   const related: Guide[] = relatedGuides(currentSlug, 4);
@@ -170,6 +181,10 @@ export function ArticleFooter({ currentSlug }: { currentSlug: string }) {
             </li>
           ))}
         </ul>
+        <p className="mt-3 text-sm text-gray-500">
+          Run your own numbers in the <A href="/">loan calculator</A>, or see{" "}
+          <A href="/calculators">all calculators</A>.
+        </p>
       </section>
 
       <p className="mt-10 border-t border-gray-200 pt-5 text-sm text-gray-500">
@@ -177,6 +192,59 @@ export function ArticleFooter({ currentSlug }: { currentSlug: string }) {
         produced by our calculator and independently recomputed before
         publication; your lender&apos;s own documents govern your loan. Spot an
         error? <A href="/contact">Tell us</A> — see also our{" "}
+        <A href="/disclaimer">disclaimer</A>.
+      </p>
+    </>
+  );
+}
+
+/**
+ * 计算器页底部：横向内链（其他计算器）+ 纵向内链（相关指南）+ 免责。
+ * 注册表驱动，新增计算器或指南自动出现在这里。
+ */
+export function CalculatorFooter({ currentSlug }: { currentSlug: string }) {
+  const calculators: Calculator[] = relatedCalculators(currentSlug, 4);
+  const guides: Guide[] = relatedGuides(currentSlug, 3);
+
+  return (
+    <>
+      <section className="mt-12 border-t border-gray-200 pt-6">
+        <h2 className="text-lg font-semibold text-gray-900">
+          Other calculators
+        </h2>
+        <ul className="mt-3 space-y-2 text-gray-600">
+          {calculators.map((c) => (
+            <li key={c.slug}>
+              <A href={`/${c.slug}`}>{c.title}</A>
+              <span className="text-gray-500"> — {c.summary}</span>
+            </li>
+          ))}
+        </ul>
+        <p className="mt-3 text-sm text-gray-500">
+          <A href="/calculators">See all calculators</A>
+        </p>
+      </section>
+
+      <section className="mt-10 border-t border-gray-200 pt-6">
+        <h2 className="text-lg font-semibold text-gray-900">
+          Guides that go with it
+        </h2>
+        <ul className="mt-3 space-y-2 text-gray-600">
+          {guides.map((g) => (
+            <li key={g.slug}>
+              <A href={`/${g.slug}`}>{g.title}</A>
+              <span className="text-gray-500"> — {g.summary}</span>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <p className="mt-10 border-t border-gray-200 pt-5 text-sm text-gray-500">
+        This calculator is educational and is not financial advice, and its
+        output is an estimate — lenders apply their own fees, rounding rules and
+        day-count conventions. Every figure was produced by the same calculator
+        code and independently recomputed before publication. Spot an error?{" "}
+        <A href="/contact">Tell us</A> — see also our{" "}
         <A href="/disclaimer">disclaimer</A>.
       </p>
     </>

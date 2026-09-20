@@ -1,196 +1,191 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { calculateLoan, formatMoney } from "@/lib/loan";
+import {
+  calculateLoan,
+  compareExtraPayment,
+  formatMoney,
+  formatMonths,
+} from "@/lib/loan";
+import {
+  InputWarning,
+  NumberField,
+  Panel,
+  ResultHero,
+  ScheduleTable,
+  SelectField,
+  StackedBar,
+  StatGrid,
+} from "@/components/CalculatorUI";
 
-const YEARS = Array.from({ length: 30 }, (_, i) => i + 1);
+const DEFAULT_TERMS = Array.from({ length: 30 }, (_, i) => i + 1);
 
-export default function LoanCalculator() {
-  const [principal, setPrincipal] = useState(250000);
-  const [rate, setRate] = useState(6.5);
-  const [years, setYears] = useState(30);
-  const [showAll, setShowAll] = useState(false);
+export type LoanCalculatorProps = {
+  /** 金额字段的标签，比如 "Loan amount" / "Tuition balance" */
+  amountLabel?: string;
+  amountHint?: string;
+  defaultPrincipal?: number;
+  defaultRate?: number;
+  defaultYears?: number;
+  /** 期限下拉提供的年份选项 */
+  termOptions?: number[];
+  /** 是否显示「每期额外还款」输入与提前还清结论 */
+  showExtraPayment?: boolean;
+  extraLabel?: string;
+  /** 利率上限，个人贷等产品可以放宽 */
+  maxRate?: number;
+  rateLabel?: string;
+};
+
+export default function LoanCalculator({
+  amountLabel = "Loan amount",
+  amountHint,
+  defaultPrincipal = 250000,
+  defaultRate = 6.5,
+  defaultYears = 30,
+  termOptions = DEFAULT_TERMS,
+  showExtraPayment = false,
+  extraLabel = "Extra monthly payment",
+  maxRate = 30,
+  rateLabel = "Annual interest rate (APR)",
+}: LoanCalculatorProps) {
+  const [principal, setPrincipal] = useState(defaultPrincipal);
+  const [rate, setRate] = useState(defaultRate);
+  const [years, setYears] = useState(defaultYears);
+  const [extra, setExtra] = useState(0);
 
   const result = useMemo(
     () => calculateLoan(principal || 0, rate, years),
     [principal, rate, years]
   );
 
-  const principalPct =
-    result.totalPayment > 0
-      ? ((principal / result.totalPayment) * 100).toFixed(1)
-      : "0";
-  const interestPct =
-    result.totalPayment > 0
-      ? ((result.totalInterest / result.totalPayment) * 100).toFixed(1)
-      : "0";
-
-  const visibleRows = showAll
-    ? result.schedule
-    : result.schedule.slice(0, 12);
-
-  const inputCls =
-    "w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-base text-gray-800 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100";
+  const faster = useMemo(
+    () =>
+      showExtraPayment && extra > 0
+        ? compareExtraPayment(principal || 0, rate, years, extra)
+        : null,
+    [showExtraPayment, principal, rate, years, extra]
+  );
 
   return (
     <div className="grid gap-6 lg:grid-cols-[380px_minmax(0,1fr)]">
-      {/* 输入区 */}
-      <div className="min-w-0 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-        <h2 className="text-lg font-semibold text-gray-900">Loan details</h2>
-        <div className="mt-4 space-y-4">
-          <div>
-            <label className="mb-1.5 block text-sm font-medium text-gray-700">
-              Loan amount
-            </label>
-            <div className="relative">
-              <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
-                $
-              </span>
-              <input
-                type="number"
-                value={principal || ""}
-                onChange={(e) => setPrincipal(Number(e.target.value))}
-                min={0}
-                placeholder="250000"
-                className={`${inputCls} pl-8`}
-              />
-            </div>
-          </div>
+      <Panel title="Loan details">
+        <NumberField
+          label={amountLabel}
+          value={principal}
+          onChange={setPrincipal}
+          prefix="$"
+          placeholder={String(defaultPrincipal)}
+          hint={amountHint}
+        />
+        <NumberField
+          label={rateLabel}
+          value={rate}
+          onChange={setRate}
+          suffix="%"
+          max={maxRate}
+          step={0.01}
+          placeholder={String(defaultRate)}
+        />
+        <SelectField
+          label="Loan term"
+          value={years}
+          onChange={(v) => setYears(Number(v))}
+          options={termOptions.map((y) => ({
+            value: y,
+            label: `${y} year${y > 1 ? "s" : ""} (${y * 12} months)`,
+          }))}
+        />
+        {showExtraPayment && (
+          <NumberField
+            label={extraLabel}
+            value={extra}
+            onChange={setExtra}
+            prefix="$"
+            placeholder="0"
+            hint="Applied to principal every month. Fixed-rate loans normally allow this without penalty — check yours first."
+          />
+        )}
+      </Panel>
 
-          <div>
-            <label className="mb-1.5 block text-sm font-medium text-gray-700">
-              Annual interest rate (APR)
-            </label>
-            <div className="relative">
-              <input
-                type="number"
-                value={rate || ""}
-                onChange={(e) => setRate(Number(e.target.value))}
-                min={0}
-                max={30}
-                step={0.1}
-                placeholder="6.5"
-                className={`${inputCls} pr-8`}
-              />
-              <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-gray-400">
-                %
-              </span>
-            </div>
-          </div>
-
-          <div>
-            <label className="mb-1.5 block text-sm font-medium text-gray-700">
-              Loan term
-            </label>
-            <select
-              value={years}
-              onChange={(e) => setYears(Number(e.target.value))}
-              className={inputCls}
-            >
-              {YEARS.map((y) => (
-                <option key={y} value={y}>
-                  {y} year{y > 1 ? "s" : ""} ({y * 12} months)
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-      </div>
-
-      {/* 结果区 */}
       <div className="min-w-0 space-y-4">
-        <div className="rounded-2xl border border-emerald-200 bg-gradient-to-br from-emerald-50 to-teal-50 p-6">
-          <p className="text-sm font-medium text-emerald-700">
-            Estimated monthly payment
-          </p>
-          <p className="mt-1 overflow-hidden whitespace-nowrap text-[clamp(1.5rem,4.5vw,2.5rem)] font-semibold leading-tight tracking-tight tabular-nums text-gray-900">
-            {formatMoney(result.monthlyPayment)}
-          </p>
-          <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
-            <div className="rounded-xl bg-white/80 p-3">
-              <p className="text-gray-500">Total interest</p>
-              <p className="mt-0.5 whitespace-nowrap font-medium tabular-nums text-gray-900">
-                {formatMoney(result.totalInterest)}
-              </p>
-            </div>
-            <div className="rounded-xl bg-white/80 p-3">
-              <p className="text-gray-500">Total payment</p>
-              <p className="mt-0.5 whitespace-nowrap font-medium tabular-nums text-gray-900">
-                {formatMoney(result.totalPayment)}
-              </p>
-            </div>
-          </div>
+        <ResultHero
+          label="Estimated monthly payment"
+          value={formatMoney(result.monthlyPayment)}
+          note={
+            faster && extra > 0
+              ? `With ${formatMoney(extra)} extra each month you would pay it off in ${formatMonths(
+                  faster.months
+                )} instead of ${formatMonths(faster.baseMonths)}.`
+              : undefined
+          }
+        />
 
-          <div className="mt-5">
-            <div className="flex h-3 w-full overflow-hidden rounded-full bg-white/80">
-              <div
-                className="bg-emerald-500"
-                style={{ width: `${principalPct}%` }}
-              />
-              <div
-                className="bg-orange-400"
-                style={{ width: `${interestPct}%` }}
-              />
-            </div>
-            <div className="mt-2 flex gap-4 text-xs text-gray-600">
-              <span className="flex items-center gap-1.5">
-                <span className="h-2.5 w-2.5 rounded-full bg-emerald-500" />
-                Principal {principalPct}%
-              </span>
-              <span className="flex items-center gap-1.5">
-                <span className="h-2.5 w-2.5 rounded-full bg-orange-400" />
-                Interest {interestPct}%
-              </span>
-            </div>
-          </div>
+        <div className="rounded-2xl border border-gray-200 bg-white p-6">
+          <StatGrid
+            items={[
+              { label: "Total interest", value: formatMoney(result.totalInterest) },
+              { label: "Total payment", value: formatMoney(result.totalPayment) },
+            ]}
+          />
+          <StackedBar
+            segments={[
+              { label: "Principal", value: principal, color: "#059669" },
+              { label: "Interest", value: result.totalInterest, color: "#fb923c" },
+            ]}
+          />
         </div>
 
-        {/* 还款计划表 */}
-        <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white">
-          <div className="flex items-center justify-between border-b border-gray-100 px-5 py-3">
-            <h3 className="font-medium text-gray-900">Amortization schedule</h3>
-            <span className="text-sm text-gray-500">
-              Showing {visibleRows.length} of {result.schedule.length} months
-            </span>
+        {faster && extra > 0 && (
+          <div className="rounded-2xl border border-emerald-200 bg-emerald-50/60 p-6">
+            <h3 className="font-medium text-gray-900">
+              Effect of {formatMoney(extra)} a month extra
+            </h3>
+            <div className="mt-3">
+              <StatGrid
+                cols={3}
+                items={[
+                  { label: "Paid off in", value: formatMonths(faster.months), strong: true },
+                  {
+                    label: "Time saved",
+                    value: formatMonths(faster.monthsSaved),
+                    strong: true,
+                  },
+                  {
+                    label: "Interest saved",
+                    value: formatMoney(faster.interestSaved),
+                    strong: true,
+                  },
+                ]}
+              />
+            </div>
+            <p className="mt-3 text-sm leading-relaxed text-gray-600">
+              Total interest falls from {formatMoney(faster.baseInterest)} to{" "}
+              {formatMoney(faster.totalInterest)}. The extra money is not a fee —
+              every dollar of it reduces the balance, which is why the saving is
+              so much larger than the amount paid in.
+            </p>
           </div>
-          <div className="max-h-80 overflow-x-auto overflow-y-auto">
-            <table className="w-full text-sm">
-              <thead className="sticky top-0 bg-gray-50 text-left text-gray-500">
-                <tr>
-                  <th className="px-5 py-2 font-medium">Month</th>
-                  <th className="px-5 py-2 font-medium">Payment</th>
-                  <th className="px-5 py-2 font-medium">Principal</th>
-                  <th className="px-5 py-2 font-medium">Interest</th>
-                  <th className="px-5 py-2 text-right font-medium">Balance</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {visibleRows.map((row) => (
-                  <tr key={row.month} className="tabular-nums text-gray-600">
-                    <td className="px-5 py-2">{row.month}</td>
-                    <td className="px-5 py-2">
-                      {formatMoney(row.payment)}
-                    </td>
-                    <td className="px-5 py-2">{formatMoney(row.principal)}</td>
-                    <td className="px-5 py-2">{formatMoney(row.interest)}</td>
-                    <td className="px-5 py-2 text-right">
-                      {formatMoney(row.balance)}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          {result.schedule.length > 12 && (
-            <button
-              onClick={() => setShowAll((v) => !v)}
-              className="w-full border-t border-gray-100 py-3 text-sm font-medium text-emerald-600 hover:bg-emerald-50"
-            >
-              {showAll ? "Show first 12 months" : `Show full schedule (${result.schedule.length} months)`}
-            </button>
-          )}
-        </div>
+        )}
+
+        {showExtraPayment && extra > 0 && fastCheck(faster) && (
+          <InputWarning>
+            At {formatMoney(extra)} extra per month the additional payments are
+            barely ahead of the interest being charged, so the payoff date
+            barely moves. Try a larger extra payment or a lower rate.
+          </InputWarning>
+        )}
+
+        <ScheduleTable
+          rows={result.schedule}
+          caption="Each row shows how the same payment splits differently as the balance falls — the interest column shrinks and the principal column grows."
+        />
       </div>
     </div>
   );
+}
+
+/** 额外还款效果过弱时给出提醒（避免用户以为计算器坏了） */
+function fastCheck(f: { monthsSaved: number } | null): boolean {
+  return !!f && f.monthsSaved < 1;
 }

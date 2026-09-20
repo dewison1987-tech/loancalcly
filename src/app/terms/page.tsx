@@ -49,10 +49,10 @@ export default function TermsPage() {
 
       <Section title="3. Intellectual property">
         <p>
-          The site's design, code, text, structure, and the LoanCalcly name and
+          The site&apos;s design, code, text, structure, and the LoanCalcly name and
           logo are owned by us or our licensors and are protected by copyright
           and trademark law. You may link to any page, quote short excerpts with
-          clear attribution and a link back, and use the calculator's output for
+          clear attribution and a link back, and use the calculator&apos;s output for
           your own personal decision-making. You may not republish our content
           wholesale, or present it as your own.
         </p>

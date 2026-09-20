@@ -75,7 +75,7 @@ export default function DisclaimerPage() {
             <>
               <strong>Your credit profile</strong> — the rate you are actually
               offered depends on your creditworthiness, down payment and the
-              lender's own criteria.
+              lender&apos;s own criteria.
             </>,
           ]}
         />
@@ -96,7 +96,7 @@ export default function DisclaimerPage() {
         </p>
         <p>
           To the fullest extent permitted by law, we disclaim liability for any
-          loss or damage arising from reliance on the site's content or output.
+          loss or damage arising from reliance on the site&apos;s content or output.
           See the{" "}
           <Link
             href="/terms"
@@ -128,7 +128,7 @@ export default function DisclaimerPage() {
         </p>
         <p>
           Advertisers do not see your calculator inputs, they do not influence
-          the calculator's output, and they have no say in our editorial
+          the calculator&apos;s output, and they have no say in our editorial
           content.
         </p>
       </Section>
@@ -154,7 +154,7 @@ export default function DisclaimerPage() {
           We do not control those sites and are not responsible for their
           content, accuracy, products or privacy practices. Following an
           external link means you leave LoanCalcly and become subject to that
-          site's terms.
+          site&apos;s terms.
         </p>
       </Section>
 
