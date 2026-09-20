@@ -30,12 +30,12 @@ export default function LoanCalculator() {
     : result.schedule.slice(0, 12);
 
   const inputCls =
-    "w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-gray-800 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100";
+    "w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-base text-gray-800 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100";
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[380px_1fr]">
+    <div className="grid gap-6 lg:grid-cols-[380px_minmax(0,1fr)]">
       {/* 输入区 */}
-      <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+      <div className="min-w-0 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
         <h2 className="text-lg font-semibold text-gray-900">Loan details</h2>
         <div className="mt-4 space-y-4">
           <div>
@@ -59,17 +59,23 @@ export default function LoanCalculator() {
 
           <div>
             <label className="mb-1.5 block text-sm font-medium text-gray-700">
-              Annual interest rate (APR) — {rate}%
+              Annual interest rate (APR)
             </label>
-            <input
-              type="range"
-              min={0}
-              max={20}
-              step={0.1}
-              value={rate}
-              onChange={(e) => setRate(Number(e.target.value))}
-              className="w-full accent-emerald-600"
-            />
+            <div className="relative">
+              <input
+                type="number"
+                value={rate || ""}
+                onChange={(e) => setRate(Number(e.target.value))}
+                min={0}
+                max={30}
+                step={0.1}
+                placeholder="6.5"
+                className={`${inputCls} pr-8`}
+              />
+              <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-gray-400">
+                %
+              </span>
+            </div>
           </div>
 
           <div>
@@ -92,24 +98,24 @@ export default function LoanCalculator() {
       </div>
 
       {/* 结果区 */}
-      <div className="space-y-4">
+      <div className="min-w-0 space-y-4">
         <div className="rounded-2xl border border-emerald-200 bg-gradient-to-br from-emerald-50 to-teal-50 p-6">
           <p className="text-sm font-medium text-emerald-700">
             Estimated monthly payment
           </p>
-          <p className="mt-1 text-4xl font-semibold tracking-tight text-gray-900">
+          <p className="mt-1 overflow-hidden whitespace-nowrap text-[clamp(1.5rem,4.5vw,2.5rem)] font-semibold leading-tight tracking-tight tabular-nums text-gray-900">
             {formatMoney(result.monthlyPayment)}
           </p>
           <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
             <div className="rounded-xl bg-white/80 p-3">
               <p className="text-gray-500">Total interest</p>
-              <p className="mt-0.5 font-medium text-gray-900">
+              <p className="mt-0.5 whitespace-nowrap font-medium tabular-nums text-gray-900">
                 {formatMoney(result.totalInterest)}
               </p>
             </div>
             <div className="rounded-xl bg-white/80 p-3">
               <p className="text-gray-500">Total payment</p>
-              <p className="mt-0.5 font-medium text-gray-900">
+              <p className="mt-0.5 whitespace-nowrap font-medium tabular-nums text-gray-900">
                 {formatMoney(result.totalPayment)}
               </p>
             </div>
@@ -147,7 +153,7 @@ export default function LoanCalculator() {
               Showing {visibleRows.length} of {result.schedule.length} months
             </span>
           </div>
-          <div className="max-h-80 overflow-y-auto">
+          <div className="max-h-80 overflow-x-auto overflow-y-auto">
             <table className="w-full text-sm">
               <thead className="sticky top-0 bg-gray-50 text-left text-gray-500">
                 <tr>
@@ -160,7 +166,7 @@ export default function LoanCalculator() {
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {visibleRows.map((row) => (
-                  <tr key={row.month} className="text-gray-600">
+                  <tr key={row.month} className="tabular-nums text-gray-600">
                     <td className="px-5 py-2">{row.month}</td>
                     <td className="px-5 py-2">
                       {formatMoney(row.payment)}
