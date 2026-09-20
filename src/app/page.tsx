@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import LoanCalculator from "@/components/LoanCalculator";
 import { SITE_URL } from "@/lib/site";
+import { GUIDES } from "@/lib/guides";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/" },
@@ -174,6 +175,31 @@ export default function Home() {
           </Link>{" "}
           explains the mechanics in detail.
         </p>
+      </section>
+
+      <section className="mt-12 max-w-3xl">
+        <h2 className="text-xl font-semibold text-gray-900">
+          Guides: how borrowing really costs money
+        </h2>
+        <p className="mt-3 leading-relaxed text-gray-600">
+          The calculator tells you the numbers. These guides explain what to do
+          with them — each one works through real figures rather than rules of
+          thumb.
+        </p>
+        <div className="mt-4 space-y-3">
+          {GUIDES.map((g) => (
+            <Link
+              key={g.slug}
+              href={`/${g.slug}`}
+              className="block rounded-xl border border-gray-200 bg-white p-4 transition-colors hover:border-emerald-300 hover:bg-emerald-50/40"
+            >
+              <p className="font-medium text-gray-900">{g.title}</p>
+              <p className="mt-1 text-sm leading-relaxed text-gray-600">
+                {g.summary}
+              </p>
+            </Link>
+          ))}
+        </div>
       </section>
 
       <section className="mt-12 max-w-3xl">

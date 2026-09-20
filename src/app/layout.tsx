@@ -38,6 +38,7 @@ export const metadata: Metadata = {
 
 const NAV_LINKS: { href: string; label: string }[] = [
   { href: "/", label: "Calculator" },
+  { href: "/guides", label: "Guides" },
   { href: "/how-loan-amortization-works", label: "How it works" },
   { href: "/about", label: "About" },
   { href: "/contact", label: "Contact" },
@@ -45,7 +46,12 @@ const NAV_LINKS: { href: string; label: string }[] = [
 
 const FOOTER_LINKS: { href: string; label: string }[] = [
   { href: "/about", label: "About" },
+  { href: "/guides", label: "All guides" },
   { href: "/how-loan-amortization-works", label: "How amortization works" },
+  { href: "/how-to-compare-loan-offers", label: "Compare loan offers" },
+  { href: "/apr-vs-interest-rate", label: "APR vs interest rate" },
+  { href: "/biweekly-payments-guide", label: "Biweekly payments" },
+  { href: "/refinance-break-even-point", label: "Refinance break-even" },
   { href: "/contact", label: "Contact" },
   { href: "/disclaimer", label: "Disclaimer" },
   { href: "/terms", label: "Terms" },

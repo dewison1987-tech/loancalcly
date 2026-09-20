@@ -1,6 +1,15 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { SITE_URL } from "@/lib/site";
+import {
+  A,
+  ArticleFooter,
+  ArticleSchema,
+  Byline,
+  Formula,
+  H2,
+  P,
+} from "@/components/Prose";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/how-loan-amortization-works" },
@@ -10,18 +19,6 @@ export const metadata: Metadata = {
 };
 
 const PUBLISHED = "September 20, 2026";
-
-function H2({ children }: { children: React.ReactNode }) {
-  return (
-    <h2 className="mt-10 text-xl font-semibold text-gray-900 sm:text-2xl">
-      {children}
-    </h2>
-  );
-}
-
-function P({ children }: { children: React.ReactNode }) {
-  return <p className="mt-4 leading-relaxed text-gray-600">{children}</p>;
-}
 
 const SCHEDULE = [
   { m: 1, interest: "$1,625.00", principal: "$988.32", balance: "$299,011.68" },
@@ -33,34 +30,21 @@ const SCHEDULE = [
 ];
 
 export default function AmortizationGuide() {
-  const schema = {
-    "@context": "https://schema.org",
-    "@type": "Article",
-    headline: "How Loan Amortization Works (With a Month-by-Month Example)",
-    description:
-      "A plain-English explanation of loan amortization with a worked example, the crossover point and the effect of extra payments.",
-    author: { "@type": "Organization", name: "LoanCalcly Editorial" },
-    publisher: { "@type": "Organization", name: "LoanCalcly", url: SITE_URL },
-    datePublished: "2026-09-20",
-    dateModified: "2026-09-20",
-    mainEntityOfPage: `${SITE_URL}/how-loan-amortization-works`,
-  };
-
   return (
     <main className="mx-auto max-w-3xl px-4 pb-16 pt-12">
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+      <ArticleSchema
+        headline="How Loan Amortization Works (With a Month-by-Month Example)"
+        description="A plain-English explanation of loan amortization with a worked example, the crossover point and the effect of extra payments."
+        path="/how-loan-amortization-works"
+        siteUrl={SITE_URL}
+        datePublished="2026-09-20"
       />
 
       <article>
         <h1 className="text-3xl font-semibold tracking-tight text-gray-900 sm:text-4xl">
           How loan amortization works
         </h1>
-        <p className="mt-3 text-sm text-gray-500">
-          Reviewed by <span className="font-medium text-gray-700">LoanCalcly Editorial</span>{" "}
-          · Published {PUBLISHED}
-        </p>
+        <Byline published={PUBLISHED} />
 
         <P>
           If you have ever looked at a mortgage statement after three years of
@@ -101,9 +85,9 @@ export default function AmortizationGuide() {
           </Link>{" "}
           uses:
         </P>
-        <p className="mt-4 rounded-xl border border-gray-200 bg-white p-4 font-mono text-sm text-gray-800">
+        <Formula>
           M = P × [ r(1 + r)<sup>n</sup> ] / [ (1 + r)<sup>n</sup> − 1 ]
-        </p>
+        </Formula>
         <ul className="ml-5 mt-4 list-disc space-y-2 leading-relaxed text-gray-600">
           <li>
             <strong>M</strong> — the monthly payment, which stays constant.
@@ -292,39 +276,15 @@ export default function AmortizationGuide() {
         <H2>Put it to work</H2>
         <P>
           The fastest way to internalise this is to watch it happen. Open the{" "}
-          <Link
-            href="/"
-            className="text-emerald-700 underline underline-offset-2 hover:text-emerald-900"
-          >
-            loan calculator
-          </Link>
+          <A href="/">loan calculator</A>
           , enter your own numbers, and scroll the amortization schedule. Then
           change only the term, and compare the Total interest line. The gap
           between a 15-year and a 30-year loan on the same amount is usually the
           single most eye-opening number in personal finance.
         </P>
-      </article>
 
-      <p className="mt-10 border-t border-gray-200 pt-5 text-sm text-gray-500">
-        This guide is educational and is not financial advice. Figures were
-        produced by our calculator and independently recomputed before
-        publication; your lender&apos;s own documents govern your loan. Spot an
-        error?{" "}
-        <Link
-          href="/contact"
-          className="text-emerald-700 underline underline-offset-2 hover:text-emerald-900"
-        >
-          Tell us
-        </Link>{" "}
-        — see also our{" "}
-        <Link
-          href="/disclaimer"
-          className="text-emerald-700 underline underline-offset-2 hover:text-emerald-900"
-        >
-          disclaimer
-        </Link>
-        .
-      </p>
+        <ArticleFooter currentSlug="how-loan-amortization-works" />
+      </article>
     </main>
   );
 }
