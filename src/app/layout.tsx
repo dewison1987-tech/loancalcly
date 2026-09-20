@@ -1,5 +1,9 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import Link from "next/link";
+import SiteAnalytics from "@/components/SiteAnalytics";
+import AdSense from "@/components/AdSense";
+import { SITE_URL, SITE_NAME, EDITORIAL_BYLINE } from "@/lib/site";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -12,16 +16,44 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const ADSENSE_CLIENT = process.env.NEXT_PUBLIC_ADSENSE_CLIENT;
+
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
   title: {
-    default: "Loan Calculator — Free Monthly Payment Calculator",
-    template: "%s | Loan Calculator",
+    default: "Loan Calculator — Free Monthly Payment & Amortization Calculator",
+    template: "%s | LoanCalcly",
   },
   description:
-    "Calculate your monthly loan payment, total interest and full amortization schedule. Free, instant and accurate for mortgages, car loans, personal loans and more.",
+    "Free loan calculator: work out your monthly payment, total interest and full amortization schedule for mortgages, car loans and personal loans. No signup required.",
+  openGraph: {
+    type: "website",
+    siteName: "LoanCalcly",
+    url: SITE_URL,
+  },
+  ...(ADSENSE_CLIENT
+    ? { other: { "google-adsense-account": ADSENSE_CLIENT } }
+    : {}),
 };
 
+const NAV_LINKS: { href: string; label: string }[] = [
+  { href: "/", label: "Calculator" },
+  { href: "/how-loan-amortization-works", label: "How it works" },
+  { href: "/about", label: "About" },
+  { href: "/contact", label: "Contact" },
+];
+
+const FOOTER_LINKS: { href: string; label: string }[] = [
+  { href: "/about", label: "About" },
+  { href: "/how-loan-amortization-works", label: "How amortization works" },
+  { href: "/contact", label: "Contact" },
+  { href: "/disclaimer", label: "Disclaimer" },
+  { href: "/terms", label: "Terms" },
+  { href: "/privacy", label: "Privacy" },
+];
+
 export default function RootLayout({ children }: LayoutProps<"/">) {
+  const year = new Date().getFullYear();
   return (
     <html
       lang="en"
@@ -30,21 +62,96 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="min-h-full flex flex-col bg-gray-50">
         <header className="border-b border-gray-200 bg-white">
           <nav className="mx-auto flex max-w-5xl items-center justify-between px-4 py-4">
-            <span className="flex items-center gap-2 font-semibold tracking-tight text-gray-900">
-              <span className="flex h-8 w-8 items-center justify-center rounded-lg text-sm font-bold text-white" style={{ background: "linear-gradient(135deg, #059669, #0d9488)" }}>
+            <Link
+              href="/"
+              className="flex items-center gap-2 font-semibold tracking-tight text-gray-900"
+            >
+              <span
+                className="flex h-8 w-8 items-center justify-center rounded-lg text-sm font-bold text-white"
+                style={{ background: "linear-gradient(135deg, #059669, #0d9488)" }}
+              >
                 LC
               </span>
-              Loan Calculator
-            </span>
+              {SITE_NAME}
+            </Link>
+            <div className="flex items-center gap-1 text-sm">
+              {NAV_LINKS.map((l) => (
+                <Link
+                  key={l.href}
+                  href={l.href}
+                  className="rounded-lg px-3 py-2 text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900"
+                >
+                  {l.label}
+                </Link>
+              ))}
+            </div>
           </nav>
         </header>
+
         {children}
-        <footer className="mt-auto border-t border-gray-200 py-6">
-          <div className="mx-auto flex max-w-5xl items-center justify-between px-4 text-sm text-gray-500">
-            <span>© {new Date().getFullYear()} Loan Calculator</span>
-            <span>Estimates only — always confirm with your lender</span>
+
+        <footer className="mt-auto border-t border-gray-200 bg-white">
+          <div className="mx-auto max-w-5xl px-4 py-8 text-sm text-gray-600">
+            <nav
+              aria-label="Footer"
+              className="flex flex-wrap items-center gap-x-5 gap-y-2"
+            >
+              {FOOTER_LINKS.map((l) => (
+                <Link
+                  key={l.href}
+                  href={l.href}
+                  className="text-gray-700 transition-colors hover:text-emerald-700 hover:underline"
+                >
+                  {l.label}
+                </Link>
+              ))}
+            </nav>
+
+            <p className="mt-4 leading-relaxed text-gray-500">
+              <span className="font-medium text-gray-700">
+                Estimates only.
+              </span>{" "}
+              LoanCalcly is not a lender or a financial adviser, and nothing on
+              this site is financial advice. Figures are illustrative and your
+              lender&apos;s Loan Estimate governs your actual loan.{" "}
+              <Link
+                href="/disclaimer"
+                className="text-gray-700 underline underline-offset-2 hover:text-emerald-700"
+              >
+                Read the full disclaimer
+              </Link>
+              .
+            </p>
+
+            <p className="mt-3 leading-relaxed text-gray-500">
+              <span className="font-medium text-gray-700">
+                Advertising disclosure:
+              </span>{" "}
+              this site is supported by advertising and may contain affiliate
+              links. Third-party vendors, including Google, may use cookies to
+              serve ads based on your prior visits to this and other websites.
+              See the{" "}
+              <Link
+                href="/privacy"
+                className="text-gray-700 underline underline-offset-2 hover:text-emerald-700"
+              >
+                Privacy policy
+              </Link>{" "}
+              for details and opt-out options.
+            </p>
+
+            <p className="mt-3 text-xs text-gray-500">
+              © {year} LoanCalcly · Calculator content reviewed by{" "}
+              <span className="font-medium text-gray-700">
+                {EDITORIAL_BYLINE}
+              </span>
+              . All trademarks are the property of their respective owners.
+            </p>
           </div>
         </footer>
+
+        <SiteAnalytics />
+        <AdSense />
       </body>
     </html>
   );
