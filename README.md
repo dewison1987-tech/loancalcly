@@ -2,26 +2,31 @@
 
 Free loan calculators — mortgage (PITI), auto, personal and student loans — plus amortization schedules and explanatory guides. English-language site aimed at US/UK search traffic.
 
-**Live:** https://loancalcly.aiscoutly.com
+**Live:** https://loancalcly.com
 
 ---
 
 ## 域名形态（重要，勿忘）
 
-本站**不单独注册域名**，部署在已有域名 `aiscoutly.com` 的子域名下。决策日期 **2026-09-25**。
+本站使用**独立域名** `loancalcly.com`，规范主机名是**裸域**。决策日期 **2026-09-25**。
 
-- 规范主机名 = `https://loancalcly.aiscoutly.com`，唯一来源是 `src/lib/site.ts` 里的 `SITE_HOST`
-- 子域名没有 www / 裸域两个变体，所以不存在 aiscoutly 主站那种「Vercel 里 Primary Domain 设反 → 整份 sitemap 变成一堆重定向」的问题
-- **但铁律不变**：`SITE_HOST` 必须与站点实际返回 200 的主机名完全一致。校验方法：
+> 当天先评估过「挂在已有 aiscoutly.com 的子域名下、省一次注册」的方案，最终放弃：
+> aiscoutly.com 带程序化 SEO 历史包袱（前任同名联盟站遗留 478 条垃圾 URL，
+> Google 抓取后几乎零收录，AdSense 两次拒批）。子域名会继承同一站点的信誉，
+> **省下的 $10 换不来干净的抓取历史**。
+
+- 规范主机名 = `https://loancalcly.com`，唯一来源是 `src/lib/site.ts` 里的 `SITE_HOST`
+- ⚠️ **与 aiscoutly 主站相反**：主站必须写 `https://www.aiscoutly.com`（裸域 308 跳 www），本站必须写裸域。
+  因此 Vercel 里**必须把 `loancalcly.com` 设为 Primary Domain**，让 `www.loancalcly.com` 308 跳向裸域
+- 设反的后果：sitemap 与 canonical 里的每条 URL 都会变成重定向，Google 判「网页已重定向」而不予收录。校验方法：
 
   ```bash
-  curl -sI https://loancalcly.aiscoutly.com/ | head -1   # 应为 200，不是 308
+  curl -sI https://loancalcly.com/       | head -1   # 应为 200，不是 308
+  curl -sI https://www.loancalcly.com/   | head -1   # 应为 308（跳向裸域）
   ```
 
-  若返回 308，说明 DNS 或 Vercel 域名绑定还没生效，此时 sitemap 里的每一条 URL 都会是重定向，Google 会判为「网页已重定向」而不收录。
-
-- DNS 托管在 **Namecheap BasicDNS**（`dns1/dns2.registrar-servers.com`），子域名记录加在 Namecheap 后台的 Advanced DNS，不是在 Vercel
-- Vercel 给项目分配的是**专属 CNAME**（形如 `<hash>.vercel-dns-017.com`），不是通用的 `cname.vercel-dns.com`；加 DNS 记录时以 Vercel 域名设置页显示的实际值为准
+- DNS 托管在 **Namecheap**（域名在同一处注册），记录加在 Advanced DNS：
+  裸域用 **A 记录**指向 Vercel 的 IP；`www` 用 **CNAME** 指向 Vercel 给出的**项目专属**目标（形如 `<hash>.vercel-dns-017.com`，**不是**通用的 `cname.vercel-dns.com`）。两条记录都以 Vercel 域名设置页显示的实际值为准
 
 ## 架构约定
 
