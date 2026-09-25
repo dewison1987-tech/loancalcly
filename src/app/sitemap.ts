@@ -1,9 +1,10 @@
 import type { MetadataRoute } from "next";
 import { GUIDES } from "@/lib/guides";
 import { CALCULATORS } from "@/lib/calculators";
+import { SITE_URL } from "@/lib/site";
 
-// 必须与站点实际返回 200 的主机名一致（Vercel 里把裸域设为 Primary Domain）
-const BASE_URL = "https://loancalcly.com";
+// 主机名唯一来源是 lib/site.ts，避免同一个域名在多个文件里各写一份而改漏
+const BASE_URL = SITE_URL;
 
 type Entry = {
   path: string;

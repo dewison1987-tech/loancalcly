@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { LegalPage, Section, Bullets, Ext } from "@/components/LegalPage";
+import { CONTACT_EMAIL } from "@/lib/site";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/disclaimer" },
@@ -9,7 +10,7 @@ export const metadata: Metadata = {
     "LoanCalcly provides estimates, not financial advice. Read our full disclaimer on accuracy, borrowing decisions, advertising and affiliate relationships.",
 };
 
-const LAST_UPDATED = "September 20, 2026";
+const LAST_UPDATED = "September 25, 2026";
 
 export default function DisclaimerPage() {
   return (
@@ -180,7 +181,7 @@ export default function DisclaimerPage() {
       <Section title="Contact">
         <p>
           Questions about this disclaimer:{" "}
-          <Ext href="mailto:hello@loancalcly.com">hello@loancalcly.com</Ext>.
+          <Ext href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</Ext>.
         </p>
       </Section>
     </LegalPage>

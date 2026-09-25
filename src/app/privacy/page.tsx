@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { LegalPage, Section, Bullets, Ext } from "@/components/LegalPage";
+import { CONTACT_EMAIL } from "@/lib/site";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/privacy" },
@@ -9,7 +10,7 @@ export const metadata: Metadata = {
     "How LoanCalcly handles data: what we collect, how cookies and third-party advertising work, and how you can opt out of personalised advertising.",
 };
 
-const LAST_UPDATED = "September 20, 2026";
+const LAST_UPDATED = "September 25, 2026";
 
 export default function PrivacyPage() {
   return (
@@ -173,7 +174,7 @@ export default function PrivacyPage() {
           Our legal bases for processing are consent (for advertising and
           analytics cookies) and legitimate interests (for keeping the site
           secure and working). To exercise any of these rights, email{" "}
-          <Ext href="mailto:hello@loancalcly.com">hello@loancalcly.com</Ext>.
+          <Ext href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</Ext>.
         </p>
       </Section>
 
@@ -184,7 +185,7 @@ export default function PrivacyPage() {
           sharing of personal information, and not to be discriminated against
           for exercising those rights. We do not sell personal information. To
           make a request, email{" "}
-          <Ext href="mailto:hello@loancalcly.com">hello@loancalcly.com</Ext>.
+          <Ext href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</Ext>.
         </p>
       </Section>
 
@@ -230,7 +231,7 @@ export default function PrivacyPage() {
       <Section title="12. Contact">
         <p>
           Privacy questions and data requests:{" "}
-          <Ext href="mailto:hello@loancalcly.com">hello@loancalcly.com</Ext>.
+          <Ext href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</Ext>.
           See also our{" "}
           <Link
             href="/terms"

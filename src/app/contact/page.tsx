@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { LegalPage, Section, Bullets, Ext } from "@/components/LegalPage";
+import { CONTACT_EMAIL } from "@/lib/site";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/contact" },
@@ -9,7 +10,7 @@ export const metadata: Metadata = {
     "Get in touch with LoanCalcly about calculator errors, content corrections, permissions or general questions.",
 };
 
-const LAST_UPDATED = "September 20, 2026";
+const LAST_UPDATED = "September 25, 2026";
 
 export default function ContactPage() {
   return (
@@ -26,7 +27,7 @@ export default function ContactPage() {
     >
       <Section title="Email">
         <p className="rounded-xl border border-gray-200 bg-white p-4 text-base">
-          <Ext href="mailto:hello@loancalcly.com">hello@loancalcly.com</Ext>
+          <Ext href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</Ext>
         </p>
         <p>
           We aim to reply within two to three business days. Messages that

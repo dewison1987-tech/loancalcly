@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { LegalPage, Section, Bullets, Ext } from "@/components/LegalPage";
+import { CONTACT_EMAIL, SITE_HOST } from "@/lib/site";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/terms" },
@@ -9,7 +10,7 @@ export const metadata: Metadata = {
     "The terms governing your use of the LoanCalcly loan calculator, including permitted use, intellectual property, disclaimers and limitation of liability.",
 };
 
-const LAST_UPDATED = "September 20, 2026";
+const LAST_UPDATED = "September 25, 2026";
 
 export default function TermsPage() {
   return (
@@ -18,7 +19,7 @@ export default function TermsPage() {
       updated={LAST_UPDATED}
       intro={
         <p>
-          These terms govern your use of loancalcly.com and the calculator it
+          These terms govern your use of {SITE_HOST} and the calculator it
           provides. By using the site you agree to them. If you do not agree,
           please do not use the site.
         </p>
@@ -150,7 +151,7 @@ export default function TermsPage() {
       <Section title="11. Contact">
         <p>
           Questions about these terms:{" "}
-          <Ext href="mailto:hello@loancalcly.com">hello@loancalcly.com</Ext>.
+          <Ext href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</Ext>.
         </p>
       </Section>
     </LegalPage>
