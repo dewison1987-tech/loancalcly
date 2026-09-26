@@ -152,6 +152,12 @@ export default function MethodologyPage() {
       </Section>
 
       <Section title="Who writes and reviews this site">
+        <p>
+          Pages here carry the byline of{" "}
+          <strong className="font-semibold text-gray-900">{AUTHOR.name}</strong>,{" "}
+          {AUTHOR.shortRole} — one named person who is accountable for what is
+          published, not a brand name standing in for nobody.
+        </p>
         <p>{AUTHOR.bio[0]}</p>
         <p>{AUTHOR.bio[1]}</p>
         <p>

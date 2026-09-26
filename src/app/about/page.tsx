@@ -131,15 +131,16 @@ export default function AboutPage() {
 
       <Section title="Who is behind it">
         <p>
-          LoanCalcly is built and maintained by a small independent team. We are
-          not a lender, a broker or a lead-generation company, and we do not sell
-          your information — because we never collect it in the first place.
+          LoanCalcly is built and maintained independently. It is not a lender,
+          a broker or a lead-generation company, and your information is never
+          sold — because it is never collected in the first place.
         </p>
         <p>{AUTHOR.bio[0]}</p>
         <p>{AUTHOR.bio[1]}</p>
         <p>
-          Calculator content and the explanatory guides carry his byline, and
-          every page lists the date it was last checked. Our{" "}
+          Calculator content and the explanatory guides carry the byline of{" "}
+          {AUTHOR.name} ({AUTHOR.shortRole}), and every page lists the date it was
+          last checked. Our{" "}
           <Link
             href="/methodology"
             className="text-emerald-700 underline underline-offset-2 hover:text-emerald-900"

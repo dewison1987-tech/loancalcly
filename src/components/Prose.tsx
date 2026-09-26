@@ -165,10 +165,25 @@ export function ArticleSchema({
     author: {
       "@type": "Person",
       name: AUTHOR.name,
+      jobTitle: AUTHOR.shortRole,
       url: `${siteUrl}/methodology`,
     },
-    reviewedBy: { "@type": "Person", name: AUTHOR.name },
-    publisher: { "@type": "Organization", name: SITE_NAME, url: siteUrl },
+    reviewedBy: {
+      "@type": "Person",
+      name: AUTHOR.name,
+      jobTitle: AUTHOR.shortRole,
+    },
+    // publisher 带上 layout 里 Organization 的 @id，让「文章的出版方」与
+    // 站点级组织实体在知识图谱里指向同一个节点，而不是每页各造一个匿名组织。
+    // 同时保留 name/url/logo —— Article 富媒体结果要求 publisher 自带这些字段，
+    // 只写 @id 引用有被判「publisher 缺失」的风险。
+    publisher: {
+      "@type": "Organization",
+      "@id": `${siteUrl}/#organization`,
+      name: SITE_NAME,
+      url: siteUrl,
+      logo: { "@type": "ImageObject", url: `${siteUrl}/icon.svg` },
+    },
     datePublished,
     dateModified: dateModified ?? datePublished,
     mainEntityOfPage: `${siteUrl}${path}`,
