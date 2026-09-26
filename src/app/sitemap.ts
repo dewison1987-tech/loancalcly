@@ -26,8 +26,12 @@ type Entry = {
 };
 
 const STATIC_PAGES: Entry[] = [
-  { path: "", priority: 1, changeFrequency: "weekly", lastModified: "2026-09-20" },
-  { path: "/calculators", priority: 0.9, changeFrequency: "weekly", lastModified: "2026-09-20" },
+  // 首页与 /calculators 在 09-26 那天真的改过（署名链接换成 AuthorLink、
+  // 计算器清单从 Five 改 Six 并补上 affordability）—— 日期必须跟着走。
+  // 留着旧日期就等于这个字段又开始说假话，而 lastmod 一旦不可信，
+  // Google 会连整站一起忽略。
+  { path: "", priority: 1, changeFrequency: "weekly", lastModified: "2026-09-26" },
+  { path: "/calculators", priority: 0.9, changeFrequency: "weekly", lastModified: "2026-09-26" },
   { path: "/guides", priority: 0.8, changeFrequency: "weekly", lastModified: "2026-09-26" },
   { path: "/methodology", priority: 0.6, changeFrequency: "monthly", lastModified: "2026-09-26" },
   { path: "/about", priority: 0.5, changeFrequency: "monthly", lastModified: "2026-09-26" },
