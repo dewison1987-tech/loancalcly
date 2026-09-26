@@ -167,6 +167,76 @@ export function compareExtraPayment(
   };
 }
 
+export type LumpSumResult = {
+  /** 那笔一次性还款所在的期数（在该期**期初**入账） */
+  atMonth: number;
+  amount: number;
+  /** 计划月供，不含那笔一次性还款 */
+  monthlyPayment: number;
+  /** 实际还清的期数 */
+  months: number;
+  totalInterest: number;
+  /** 相对「完全不提前还」省下的利息 */
+  interestSaved: number;
+  /** 相对基准提前的期数 */
+  monthsSaved: number;
+  /** 不提前还款时的基准利息，便于正文引用 */
+  baseInterest: number;
+};
+
+/**
+ * 在指定期一次性额外还一笔（期初入账），其余各期仍按原计划月供还。
+ *
+ * 与 `compareExtraPayment` 是**两种不同机制**：那个是「每期多还 X」的
+ * 持续性，这个是「某一期额外还一笔」的时点效应。提前还款指南要说明的正是
+ * 「同样一笔钱，付得越早越有效」—— 只有这个函数能表达，用持续性函数硬套
+ * 会把时点效应说成持续效应，两者对读者是相反的结论。
+ *
+ * `atMonth` 为 0 或负数表示那笔钱不投入，结果即基准情形。
+ */
+export function lumpSumPayoff(
+  principal: number,
+  annualRate: number,
+  years: number,
+  atMonth: number,
+  amount: number
+): LumpSumResult {
+  const r = annualRate / 100 / 12;
+  const n = Math.max(1, Math.round(years * 12));
+  const payment = scheduledPayment(principal, annualRate, n);
+  const base = runAmortization(principal, annualRate, n);
+
+  const applyAt = Math.max(0, Math.round(atMonth));
+  let balance = principal;
+  let totalInterest = 0;
+  let months = 0;
+
+  for (let i = 1; i <= n + 1 && balance > 0.005; i++) {
+    if (applyAt > 0 && i === applyAt) {
+      balance = Math.max(0, balance - amount);
+      if (balance <= 0.005) break;
+    }
+    const interest = balance * r;
+    let principalPart = payment - interest;
+    if (principalPart <= 0) break;
+    if (principalPart > balance) principalPart = balance;
+    balance -= principalPart;
+    totalInterest += interest;
+    months = i;
+  }
+
+  return {
+    atMonth: applyAt,
+    amount,
+    monthlyPayment: payment,
+    months,
+    totalInterest,
+    interestSaved: base.totalInterest - totalInterest,
+    monthsSaved: base.months - months,
+    baseInterest: base.totalInterest,
+  };
+}
+
 export type YearRow = {
   year: number;
   principal: number;
@@ -223,21 +293,27 @@ export function downPaymentRatio(
 /**
  * 余额降到目标值所需的期数。
  * 房贷场景里用来回答「按揭保险还要交多久」：余额跌到房价的 80% 那天为止。
+ *
+ * `extraMonthly` 用于回答「多还一点能不能让按揭保险提前掉线」——
+ * 额外还款不改变 PMI 的月额（PMI 按原始贷款额计），但会改变余额到达门槛的
+ * 时点，所以这个参数只能影响期数，不能影响金额。
  */
 export function monthsToBalance(
   principal: number,
   annualRate: number,
   years: number,
-  targetBalance: number
+  targetBalance: number,
+  extraMonthly = 0
 ): number {
   if (principal <= targetBalance) return 0;
   const months = Math.max(1, Math.round(years * 12));
-  const payment = scheduledPayment(principal, annualRate, months);
+  const payment = scheduledPayment(principal, annualRate, months) + extraMonthly;
   const r = annualRate / 100 / 12;
   let balance = principal;
   for (let i = 1; i <= months; i++) {
     const interest = balance * r;
     const principalPart = payment - interest;
+    if (principalPart <= 0) return months; // 连利息都不够，永远到不了目标
     balance = Math.max(0, balance - principalPart);
     if (balance <= targetBalance) return i;
   }

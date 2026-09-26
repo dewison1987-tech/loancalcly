@@ -9,10 +9,10 @@ export const metadata: Metadata = pageMetadata({
   path: "/guides",
   title: "Loan Guides — Plain-English Explainers on Borrowing Costs",
   description:
-    "Plain-English guides to how loans actually work: amortization, comparing offers, APR versus interest rate, 15-year versus 30-year terms, affordability and refinance break-even.",
+    "Plain-English guides to how loans work: amortization, APR versus interest rate, PMI, closing costs, debt-to-income and paying a loan off early.",
 });
 
-const REVIEWED = "September 20, 2026";
+const REVIEWED = "September 26, 2026";
 
 export default function GuidesIndex() {
   const schema = {
@@ -50,8 +50,8 @@ export default function GuidesIndex() {
 
       <H2>Where to start</H2>
       <P>
-        The seven guides are not a course to be read in order — they answer seven
-        different questions. Find the one closest to your situation:
+        The eleven guides are not a course to be read in order — they answer
+        eleven different questions. Find the one closest to your situation:
       </P>
       <DataTable
         head={["If your question is…", "Start here"]}
@@ -97,6 +97,30 @@ export default function GuidesIndex() {
             "How much can I borrow without stretching myself?",
             <A key="q7" href="/how-much-house-can-i-afford">
               How much house can I afford?
+            </A>,
+          ],
+          [
+            "What debt-to-income ratio are lenders actually looking for?",
+            <A key="q8" href="/debt-to-income-ratio">
+              Debt-to-income ratio
+            </A>,
+          ],
+          [
+            "When can I stop paying mortgage insurance?",
+            <A key="q9" href="/how-to-remove-pmi">
+              How to remove PMI from your mortgage
+            </A>,
+          ],
+          [
+            "What do all the fees at closing actually pay for?",
+            <A key="q10" href="/closing-costs-explained">
+              Closing costs explained
+            </A>,
+          ],
+          [
+            "Does paying extra now really save that much more than paying later?",
+            <A key="q11" href="/how-to-pay-off-a-loan-early">
+              How to pay off a loan early
             </A>,
           ],
         ]}

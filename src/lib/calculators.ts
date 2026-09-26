@@ -4,6 +4,8 @@
  * 都从这里读取，新增一个计算器只需在数组里加一条 + 建一个页面。
  *
  * ⚠️ 与 guides.ts 同一约定：相关性靠 `related` 显式声明，不靠数组顺序。
+ * 声明顺序有语义：计算器页取 3 条相关指南 + 4 个相关计算器，指南页取
+ * 4 条相关指南 + 3 个相关计算器，同一类型内按声明顺序取前 N 条。
  */
 export type CalculatorCluster =
   | "property"
@@ -50,13 +52,14 @@ export const CALCULATORS: Calculator[] = [
     cluster: "property",
     related: [
       "15-vs-30-year-mortgage",
+      "how-to-remove-pmi",
       "how-much-house-can-i-afford",
+      "debt-to-income-ratio",
       "home-affordability-calculator",
       "amortization-schedule",
-      "how-loan-amortization-works",
       "biweekly-payments-guide",
     ],
-    updated: "2026-09-20",
+    updated: "2026-09-26",
   },
   {
     slug: "home-affordability-calculator",
@@ -69,9 +72,9 @@ export const CALCULATORS: Calculator[] = [
     cluster: "property",
     related: [
       "how-much-house-can-i-afford",
+      "debt-to-income-ratio",
+      "how-to-remove-pmi",
       "mortgage-calculator",
-      "15-vs-30-year-mortgage",
-      "how-to-compare-loan-offers",
     ],
     updated: "2026-09-26",
   },
@@ -86,11 +89,11 @@ export const CALCULATORS: Calculator[] = [
     cluster: "vehicle",
     related: [
       "apr-vs-interest-rate",
+      "how-to-pay-off-a-loan-early",
       "personal-loan-calculator",
       "how-to-compare-loan-offers",
-      "amortization-schedule",
     ],
-    updated: "2026-09-20",
+    updated: "2026-09-26",
   },
   {
     slug: "personal-loan-calculator",
@@ -104,10 +107,10 @@ export const CALCULATORS: Calculator[] = [
     related: [
       "apr-vs-interest-rate",
       "how-to-compare-loan-offers",
+      "how-to-pay-off-a-loan-early",
       "auto-loan-calculator",
-      "amortization-schedule",
     ],
-    updated: "2026-09-20",
+    updated: "2026-09-26",
   },
   {
     slug: "student-loan-calculator",
@@ -120,11 +123,11 @@ export const CALCULATORS: Calculator[] = [
     cluster: "education",
     related: [
       "amortization-schedule",
+      "how-to-pay-off-a-loan-early",
       "personal-loan-calculator",
       "how-loan-amortization-works",
-      "how-to-compare-loan-offers",
     ],
-    updated: "2026-09-20",
+    updated: "2026-09-26",
   },
   {
     slug: "amortization-schedule",
@@ -137,11 +140,11 @@ export const CALCULATORS: Calculator[] = [
     cluster: "breakdown",
     related: [
       "how-loan-amortization-works",
+      "how-to-pay-off-a-loan-early",
       "mortgage-calculator",
       "biweekly-payments-guide",
-      "student-loan-calculator",
     ],
-    updated: "2026-09-20",
+    updated: "2026-09-26",
   },
 ];
 

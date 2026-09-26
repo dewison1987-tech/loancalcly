@@ -8,6 +8,10 @@
  * 2026-09-26 实测后果：每个页面推荐的都是同一批页面，数组靠后的新指南
  * 拿不到任何内链。扩到 20+ 页时这会直接把新页面变成孤岛。
  * 拓扑结构不能从数组位置里长出来，必须是人写下来的事实。
+ *
+ * ⚠️ 声明顺序有语义：`related` 里属于同一类型的项会**按声明顺序**取前 N 条
+ * （指南页取 4 条相关指南 + 3 个相关计算器，计算器页取 3 条相关指南 + 4 个
+ * 相关计算器）。想让某个页面被推荐出来，就要把它排在该类型的前 N 位。
  */
 export type GuideCluster = "borrowing-basics" | "mortgage";
 
@@ -40,9 +44,9 @@ export const GUIDES: Guide[] = [
     cluster: "borrowing-basics",
     related: [
       "amortization-schedule",
+      "how-to-pay-off-a-loan-early",
       "mortgage-calculator",
       "15-vs-30-year-mortgage",
-      "how-to-compare-loan-offers",
       "biweekly-payments-guide",
     ],
     updated: "2026-09-26",
@@ -56,9 +60,9 @@ export const GUIDES: Guide[] = [
     cluster: "borrowing-basics",
     related: [
       "apr-vs-interest-rate",
+      "closing-costs-explained",
       "mortgage-calculator",
       "personal-loan-calculator",
-      "how-much-house-can-i-afford",
       "how-loan-amortization-works",
     ],
     updated: "2026-09-26",
@@ -72,9 +76,9 @@ export const GUIDES: Guide[] = [
     cluster: "borrowing-basics",
     related: [
       "how-to-compare-loan-offers",
+      "closing-costs-explained",
       "personal-loan-calculator",
       "auto-loan-calculator",
-      "refinance-break-even-point",
       "how-loan-amortization-works",
     ],
     updated: "2026-09-26",
@@ -87,9 +91,9 @@ export const GUIDES: Guide[] = [
     keyword: "biweekly mortgage payments",
     cluster: "mortgage",
     related: [
+      "how-to-pay-off-a-loan-early",
       "mortgage-calculator",
       "amortization-schedule",
-      "how-loan-amortization-works",
       "15-vs-30-year-mortgage",
       "refinance-break-even-point",
     ],
@@ -103,9 +107,9 @@ export const GUIDES: Guide[] = [
     keyword: "refinance break even point",
     cluster: "mortgage",
     related: [
+      "closing-costs-explained",
       "mortgage-calculator",
       "15-vs-30-year-mortgage",
-      "biweekly-payments-guide",
       "how-to-compare-loan-offers",
       "apr-vs-interest-rate",
     ],
@@ -121,9 +125,10 @@ export const GUIDES: Guide[] = [
     related: [
       "mortgage-calculator",
       "home-affordability-calculator",
+      "how-to-remove-pmi",
+      "debt-to-income-ratio",
       "how-much-house-can-i-afford",
       "refinance-break-even-point",
-      "amortization-schedule",
       "biweekly-payments-guide",
     ],
     updated: "2026-09-26",
@@ -137,10 +142,75 @@ export const GUIDES: Guide[] = [
     cluster: "mortgage",
     related: [
       "home-affordability-calculator",
+      "debt-to-income-ratio",
       "mortgage-calculator",
       "15-vs-30-year-mortgage",
       "how-to-compare-loan-offers",
+    ],
+    updated: "2026-09-26",
+  },
+  {
+    slug: "how-to-remove-pmi",
+    title: "How to remove PMI from your mortgage",
+    summary:
+      "Why mortgage insurance ends when the balance crosses a threshold rather than after a fixed number of years, what it costs on a worked loan, and how a larger down payment or extra payments bring the date forward.",
+    keyword: "how to remove pmi",
+    cluster: "mortgage",
+    related: [
+      "mortgage-calculator",
+      "how-much-house-can-i-afford",
+      "home-affordability-calculator",
+      "15-vs-30-year-mortgage",
       "amortization-schedule",
+      "how-to-pay-off-a-loan-early",
+    ],
+    updated: "2026-09-26",
+  },
+  {
+    slug: "debt-to-income-ratio",
+    title: "Debt-to-income ratio",
+    summary:
+      "How front-end and back-end ratios are built, what counts towards them, where the commonly quoted ceilings come from, and what each ceiling buys in house price.",
+    keyword: "debt to income ratio",
+    cluster: "mortgage",
+    related: [
+      "how-much-house-can-i-afford",
+      "home-affordability-calculator",
+      "mortgage-calculator",
+      "how-to-remove-pmi",
+      "personal-loan-calculator",
+    ],
+    updated: "2026-09-26",
+  },
+  {
+    slug: "closing-costs-explained",
+    title: "Closing costs explained",
+    summary:
+      "The three groups on a closing bill, what can be negotiated and what cannot, and the arithmetic of discount points — including why buying twice as many points barely changes the break-even month.",
+    keyword: "closing costs explained",
+    cluster: "mortgage",
+    related: [
+      "how-to-compare-loan-offers",
+      "refinance-break-even-point",
+      "apr-vs-interest-rate",
+      "mortgage-calculator",
+      "15-vs-30-year-mortgage",
+    ],
+    updated: "2026-09-26",
+  },
+  {
+    slug: "how-to-pay-off-a-loan-early",
+    title: "How to pay off a loan early",
+    summary:
+      "Why the same extra payment saves several times more interest early in the loan than late, worked through a mortgage and a car loan, and the cases where paying ahead is the wrong choice.",
+    keyword: "how to pay off a loan early",
+    cluster: "borrowing-basics",
+    related: [
+      "amortization-schedule",
+      "how-loan-amortization-works",
+      "student-loan-calculator",
+      "mortgage-calculator",
+      "biweekly-payments-guide",
     ],
     updated: "2026-09-26",
   },
