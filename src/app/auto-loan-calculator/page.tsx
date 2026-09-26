@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import AutoLoanCalculator from "@/components/AutoLoanCalculator";
 import { SITE_URL } from "@/lib/site";
+import { pageMetadata } from "@/lib/seo";
 import {
   A,
   Byline,
@@ -14,12 +15,12 @@ import {
   UL,
 } from "@/components/Prose";
 
-export const metadata: Metadata = {
-  alternates: { canonical: "/auto-loan-calculator" },
+export const metadata: Metadata = pageMetadata({
+  path: "/auto-loan-calculator",
   title: "Auto Loan Calculator — Monthly Payment with Tax and Trade-In",
   description:
     "Calculate your car payment from the vehicle price, down payment, trade-in value and sales tax. Compare 48, 60 and 72-month terms and see what the longer term really costs.",
-};
+});
 
 const REVIEWED = "September 20, 2026";
 

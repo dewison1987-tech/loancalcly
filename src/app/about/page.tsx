@@ -2,13 +2,14 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { LegalPage, Section, Bullets, Ext } from "@/components/LegalPage";
 import { CONTACT_EMAIL } from "@/lib/site";
+import { pageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  alternates: { canonical: "/about" },
+export const metadata: Metadata = pageMetadata({
+  path: "/about",
   title: "About us",
   description:
     "LoanCalcly is a free, independent loan payment calculator. Learn how our calculator works, how we verify its accuracy, and who is behind it.",
-};
+});
 
 const LAST_UPDATED = "September 25, 2026";
 

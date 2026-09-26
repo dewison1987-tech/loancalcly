@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import AmortizationTool from "@/components/AmortizationTool";
 import { SITE_URL } from "@/lib/site";
+import { pageMetadata } from "@/lib/seo";
 import {
   A,
   Byline,
@@ -15,12 +16,12 @@ import {
   UL,
 } from "@/components/Prose";
 
-export const metadata: Metadata = {
-  alternates: { canonical: "/amortization-schedule" },
+export const metadata: Metadata = pageMetadata({
+  path: "/amortization-schedule",
   title: "Amortization Schedule Calculator — Monthly and Yearly Breakdown",
   description:
     "Generate a full amortization schedule for any fixed-rate loan: month by month, year by year, and with extra payments included. See exactly how much interest each extra dollar removes.",
-};
+});
 
 const REVIEWED = "September 20, 2026";
 

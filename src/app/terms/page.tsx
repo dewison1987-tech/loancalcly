@@ -2,13 +2,14 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { LegalPage, Section, Bullets, Ext } from "@/components/LegalPage";
 import { CONTACT_EMAIL, SITE_HOST } from "@/lib/site";
+import { pageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  alternates: { canonical: "/terms" },
+export const metadata: Metadata = pageMetadata({
+  path: "/terms",
   title: "Terms of service",
   description:
     "The terms governing your use of the LoanCalcly loan calculator, including permitted use, intellectual property, disclaimers and limitation of liability.",
-};
+});
 
 const LAST_UPDATED = "September 25, 2026";
 

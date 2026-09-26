@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { SITE_URL } from "@/lib/site";
+import { pageMetadata } from "@/lib/seo";
 import {
   A,
   ArticleFooter,
@@ -7,6 +8,7 @@ import {
   Byline,
   Callout,
   DataTable,
+  Faq,
   Formula,
   H2,
   H3,
@@ -14,12 +16,13 @@ import {
   UL,
 } from "@/components/Prose";
 
-export const metadata: Metadata = {
-  alternates: { canonical: "/how-to-compare-loan-offers" },
+export const metadata: Metadata = pageMetadata({
+  path: "/how-to-compare-loan-offers",
   title: "How to Compare Loan Offers: Rate, APR, Points and Fees",
   description:
     "A practical method for comparing loan offers: the three numbers that matter, why the headline rate misleads, worked break-even maths for discount points, and the questions to ask every lender.",
-};
+  type: "article",
+});
 
 const PUBLISHED = "September 20, 2026";
 
@@ -49,6 +52,30 @@ const CHECKLIST = [
   "The total cash you need at closing",
 ];
 
+/** 文中每一个金额都由 src/lib/loan.ts 生成，并经第二套独立实现复算比对 */
+const FAQ = [
+  {
+    q: "Should I compare the interest rate or the APR?",
+    a: "Both, plus the cash you need at closing. The rate prices the money; the APR folds in most lender fees and lets you rank loans of equal term when the fees differ. Neither tells you what you must bring to the closing table, and a loan you cannot afford to close is not an option however good its APR looks. Asking for all three makes the trade-off visible instead of hidden.",
+  },
+  {
+    q: "Are discount points worth paying?",
+    a: "Only if you keep the loan past the break-even month. On a $250,000 30-year loan, moving the rate from 6.50% to 6.25% saves $40.88 a month. One point costs $2,500, so it takes 61 months — just over five years — to get that money back. Sell or refinance before then and you have handed the lender $2,500 for a benefit you never collected.",
+  },
+  {
+    q: "How many lenders should I get quotes from?",
+    a: "Three is a practical minimum, and it is worth including at least one credit union or small local lender, because those are the quotes that most often break a pattern set by the large retail names. Submit the applications within a short window: credit scoring models generally treat multiple mortgage inquiries made close together as a single shopping event rather than several separate applications.",
+  },
+  {
+    q: "Can I negotiate the fees as well as the rate?",
+    a: "Yes, and it is usually easier than negotiating the rate itself. Lenders compete on a combination of rate and fees, so asking what a lower origination fee would do to the rate — or what rate they would offer for a larger fee — surfaces the trade-off they are actually willing to make. Quotes are rarely final, and the ones that behave as though they are tend to be the least competitive.",
+  },
+  {
+    q: "What is the biggest mistake when comparing offers?",
+    a: "Comparing monthly payments across different terms. A 30-year loan will beat a 20-year loan on payment every time, by construction — that is not a better deal, it is a longer one, and the total interest column proves it. Normalise the loan amount, term, rate type and included items first, then rank the survivors on payment, total interest and APR together.",
+  },
+];
+
 export default function CompareLoanOffersGuide() {
   return (
     <main className="mx-auto max-w-3xl px-4 pb-16 pt-12">
@@ -58,6 +85,7 @@ export default function CompareLoanOffersGuide() {
         path="/how-to-compare-loan-offers"
         siteUrl={SITE_URL}
         datePublished="2026-09-20"
+        dateModified="2026-09-26"
       />
 
       <article>
@@ -315,6 +343,8 @@ export default function CompareLoanOffersGuide() {
           total interest side by side; the discipline of typing the figures in
           yourself catches more bad offers than any advice column.
         </P>
+
+        <Faq items={FAQ} />
 
         <ArticleFooter currentSlug="how-to-compare-loan-offers" />
       </article>

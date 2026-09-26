@@ -2,13 +2,14 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { LegalPage, Section, Bullets, Ext } from "@/components/LegalPage";
 import { CONTACT_EMAIL } from "@/lib/site";
+import { pageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  alternates: { canonical: "/contact" },
+export const metadata: Metadata = pageMetadata({
+  path: "/contact",
   title: "Contact us",
   description:
     "Get in touch with LoanCalcly about calculator errors, content corrections, permissions or general questions.",
-};
+});
 
 const LAST_UPDATED = "September 25, 2026";
 

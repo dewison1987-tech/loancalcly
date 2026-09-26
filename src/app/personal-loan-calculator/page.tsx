@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import LoanCalculator from "@/components/LoanCalculator";
 import { SITE_URL } from "@/lib/site";
+import { pageMetadata } from "@/lib/seo";
 import {
   A,
   Byline,
@@ -14,12 +15,12 @@ import {
   UL,
 } from "@/components/Prose";
 
-export const metadata: Metadata = {
-  alternates: { canonical: "/personal-loan-calculator" },
+export const metadata: Metadata = pageMetadata({
+  path: "/personal-loan-calculator",
   title: "Personal Loan Calculator — Payment, Interest and Real Cost",
   description:
     "Work out the monthly payment and total interest on an unsecured personal loan, and see what an origination fee does to the real annual cost before you sign.",
-};
+});
 
 const REVIEWED = "September 20, 2026";
 

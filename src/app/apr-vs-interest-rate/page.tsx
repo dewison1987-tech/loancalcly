@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { SITE_URL } from "@/lib/site";
+import { pageMetadata } from "@/lib/seo";
 import {
   A,
   ArticleFooter,
@@ -7,6 +8,7 @@ import {
   Byline,
   Callout,
   DataTable,
+  Faq,
   Formula,
   H2,
   H3,
@@ -14,12 +16,13 @@ import {
   UL,
 } from "@/components/Prose";
 
-export const metadata: Metadata = {
-  alternates: { canonical: "/apr-vs-interest-rate" },
+export const metadata: Metadata = pageMetadata({
+  path: "/apr-vs-interest-rate",
   title: "APR vs Interest Rate: What Is the Difference, and Which Should You Compare?",
   description:
     "The interest rate prices the money; APR prices the loan. See what APR includes, what it leaves out, a worked three-lender example, and the situations where comparing APR misleads you.",
-};
+  type: "article",
+});
 
 const PUBLISHED = "September 20, 2026";
 
@@ -51,6 +54,34 @@ const THREE_LENDERS = [
   ],
 ];
 
+/**
+ * 可见问答与 FAQPage schema 由 `<Faq>` 同源产出。
+ * ⚠️ 此前这段问答是直接写在 JSX 里的，只有 `ArticleSchema`、
+ * 漏了 `FAQPage` —— 于是白丢一次 FAQ 富结果机会（2026-09-26 自检发现）。
+ */
+const FAQ = [
+  {
+    q: "Can APR ever be lower than the interest rate?",
+    a: "No. APR is the interest rate plus fees annualised, so it is equal when there are no finance charges and higher whenever there are. If a quoted APR comes back below the quoted rate, something in the quote is wrong; ask the lender to explain it before proceeding.",
+  },
+  {
+    q: "Which number should I quote when comparing offers?",
+    a: "Both, plus the cash to close. Asking for APR alone invites a quote with heavy fees and a low rate; asking for the rate alone invites the reverse. Asking for all three makes the trade-off visible instead of hidden.",
+  },
+  {
+    q: "Does a lower APR always mean a cheaper loan?",
+    a: "For a fixed-rate loan held to term, yes. For any other scenario — a short holding period, an adjustable rate, a lender credit, or a comparison across different terms — no. APR is a good default and a poor absolute.",
+  },
+  {
+    q: "Why is the APR on a short-term loan so much higher than the rate?",
+    a: "Because the same fee is spread over far fewer payments. A $3,000 charge on a 30-year mortgage adds only a fraction of a percentage point to the annual rate, while the same $3,000 on a three-year loan has to be recovered over 36 payments instead of 360, which lifts the APR sharply. The APR is not exaggerating in either case — it is annualising a real cost across a specific horizon, and comparing APRs across different terms is therefore meaningless.",
+  },
+  {
+    q: "Where do I find my loan's APR?",
+    a: "On page 3 of the Loan Estimate, in the Comparisons section, alongside the total interest percentage and the total you would pay in the first five years. That page exists precisely to support this comparison, and the lender is required to provide it within three business days of a full application.",
+  },
+];
+
 export default function AprVsRateGuide() {
   return (
     <main className="mx-auto max-w-3xl px-4 pb-16 pt-12">
@@ -60,6 +91,7 @@ export default function AprVsRateGuide() {
         path="/apr-vs-interest-rate"
         siteUrl={SITE_URL}
         datePublished="2026-09-20"
+        dateModified="2026-09-26"
       />
 
       <article>
@@ -265,33 +297,7 @@ export default function AprVsRateGuide() {
           your time horizon.
         </Callout>
 
-        <H2>Frequently asked questions</H2>
-        <H3>Can APR ever be lower than the interest rate?</H3>
-        <P>
-          No. APR is the interest rate plus fees annualised, so it is equal when
-          there are no finance charges and higher whenever there are. If a quoted
-          APR comes back below the quoted rate, something in the quote is wrong;
-          ask the lender to explain it before proceeding.
-        </P>
-        <H3>Which number should I quote when comparing offers?</H3>
-        <P>
-          Both, plus the cash to close. Asking for APR alone invites a quote with
-          heavy fees and a low rate; asking for rate alone invites the reverse.
-          Asking for all three makes the trade-off visible.
-        </P>
-        <H3>Does a lower APR always mean a cheaper loan?</H3>
-        <P>
-          For a fixed-rate loan held to term, yes. For any other scenario — a
-          short holding period, an adjustable rate, a lender credit, or
-          comparison across different terms — no. APR is a good default and a
-          poor absolute.
-        </P>
-        <H3>Where do I find my loan&apos;s APR?</H3>
-        <P>
-          On page 3 of the Loan Estimate, in the Comparisons section, alongside
-          the total interest percentage and the total you would pay in the first
-          five years. That page exists precisely to support this comparison.
-        </P>
+        <Faq items={FAQ} />
 
         <ArticleFooter currentSlug="apr-vs-interest-rate" />
       </article>

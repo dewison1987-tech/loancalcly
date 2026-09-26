@@ -28,10 +28,16 @@ export const metadata: Metadata = {
   },
   description:
     "Free loan calculators for mortgages, car loans, personal loans and student loans. Work out the monthly payment, total interest and full amortization schedule. No signup required.",
+  // ⚠️ 这里**不要**设 `openGraph.url`：根 layout 的值会被所有内页继承，
+  // 导致 18 页的 og:url 全指向首页（2026-09-26 自检实测踩过）。
+  // 每页的 og:url 由 `pageMetadata()` 与本页 canonical 同源生成。
   openGraph: {
     type: "website",
-    siteName: "LoanCalcly",
-    url: SITE_URL,
+    siteName: SITE_NAME,
+  },
+  // 分享图由 app/opengraph-image.tsx 提供，这里只需要声明卡片形态。
+  twitter: {
+    card: "summary_large_image",
   },
   ...(ADSENSE_CLIENT
     ? { other: { "google-adsense-account": ADSENSE_CLIENT } }

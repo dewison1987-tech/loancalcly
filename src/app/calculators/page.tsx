@@ -4,13 +4,14 @@ import { CALCULATORS } from "@/lib/calculators";
 import { GUIDES } from "@/lib/guides";
 import { A, JsonLd, P } from "@/components/Prose";
 import { SITE_URL } from "@/lib/site";
+import { pageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  alternates: { canonical: "/calculators" },
+export const metadata: Metadata = pageMetadata({
+  path: "/calculators",
   title: "Free Loan Calculators — Mortgage, Auto, Personal and Student",
   description:
     "Five free loan calculators: mortgage with tax and insurance, auto loans with trade-in and sales tax, personal loans with fee arithmetic, student loans and full amortization schedules.",
-};
+});
 
 const REVIEWED = "September 20, 2026";
 

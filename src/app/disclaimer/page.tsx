@@ -2,13 +2,14 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { LegalPage, Section, Bullets, Ext } from "@/components/LegalPage";
 import { CONTACT_EMAIL } from "@/lib/site";
+import { pageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  alternates: { canonical: "/disclaimer" },
+export const metadata: Metadata = pageMetadata({
+  path: "/disclaimer",
   title: "Disclaimer",
   description:
     "LoanCalcly provides estimates, not financial advice. Read our full disclaimer on accuracy, borrowing decisions, advertising and affiliate relationships.",
-};
+});
 
 const LAST_UPDATED = "September 25, 2026";
 

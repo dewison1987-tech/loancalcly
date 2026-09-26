@@ -1,15 +1,16 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { GUIDES } from "@/lib/guides";
-import { A, P } from "@/components/Prose";
+import { A, DataTable, H2, P } from "@/components/Prose";
 import { SITE_URL } from "@/lib/site";
+import { pageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  alternates: { canonical: "/guides" },
+export const metadata: Metadata = pageMetadata({
+  path: "/guides",
   title: "Loan Guides — Plain-English Explainers on Borrowing Costs",
   description:
     "Plain-English guides to how loans actually work: amortization, comparing offers, APR versus interest rate, biweekly payments and refinance break-even.",
-};
+});
 
 const REVIEWED = "September 20, 2026";
 
@@ -47,6 +48,49 @@ export default function GuidesIndex() {
         recomputed before publication.
       </P>
 
+      <H2>Where to start</H2>
+      <P>
+        The five guides are not a course to be read in order — they answer five
+        different questions. Find the one closest to your situation:
+      </P>
+      <DataTable
+        head={["If your question is…", "Start here"]}
+        align={["l", "l"]}
+        rows={[
+          [
+            "Why has my balance barely moved after three years of payments?",
+            <A key="q1" href="/how-loan-amortization-works">
+              How loan amortization works
+            </A>,
+          ],
+          [
+            "Two lenders quoted me the same rate — why are the APRs different?",
+            <A key="q2" href="/apr-vs-interest-rate">
+              APR vs interest rate
+            </A>,
+          ],
+          [
+            "Is it worth paying points to get a lower rate?",
+            <A key="q3" href="/how-to-compare-loan-offers">
+              How to compare loan offers
+            </A>,
+          ],
+          [
+            "Someone is selling me a biweekly payment plan — is the fee worth it?",
+            <A key="q4" href="/biweekly-payments-guide">
+              Biweekly payments: what they really save
+            </A>,
+          ],
+          [
+            "Will refinancing actually save me money, or just lower the payment?",
+            <A key="q5" href="/refinance-break-even-point">
+              Refinance break-even point
+            </A>,
+          ],
+        ]}
+        caption="Each guide is self-contained, and each links to the others where they overlap."
+      />
+
       <div className="mt-8 space-y-4">
         {GUIDES.map((g) => (
           <Link
@@ -62,6 +106,35 @@ export default function GuidesIndex() {
           </Link>
         ))}
       </div>
+
+      <H2>How these guides are written</H2>
+      <P>
+        Every figure in these guides comes from the same calculator code that
+        runs on this site, and each one is then recomputed with a second,
+        independent implementation before publication. Where the two disagreed,
+        the guide was rewritten rather than averaged — which is why the worked
+        examples carry exact totals like $1,896.20 and $382,633 instead of round
+        numbers. You can reproduce any of them yourself in the{" "}
+        <A href="/">loan calculator</A>.
+      </P>
+      <P>
+        Two things you will deliberately not find here. First, no &ldquo;current
+        average rate&rdquo;: a rate printed today is wrong next month, so each
+        example fixes a rate explicitly as an illustration and shows what follows
+        from it. Second, no advice about your particular loan — the guides
+        explain how the arithmetic works and which numbers to collect, then leave
+        the decision to you.
+      </P>
+      <P>
+        Some rules genuinely do depend on where you live or on the terms of your
+        own contract: state sales tax treatment, the threshold at which mortgage
+        insurance can be cancelled, income-driven repayment formulas. On those
+        points a guide says so and points you to the document that governs,
+        rather than presenting a national generalisation as though it were a
+        fact. Every guide is reviewed by{" "}
+        <span className="font-medium text-gray-700">LoanCalcly Editorial</span>{" "}
+        and lists the date it was last checked.
+      </P>
 
       <section className="mt-12 rounded-xl border border-gray-200 bg-white p-5">
         <h2 className="text-lg font-semibold text-gray-900">

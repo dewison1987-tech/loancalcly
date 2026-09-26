@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { SITE_URL } from "@/lib/site";
+import { pageMetadata } from "@/lib/seo";
 import {
   A,
   ArticleFooter,
@@ -7,18 +8,20 @@ import {
   Byline,
   Callout,
   DataTable,
+  Faq,
   H2,
   H3,
   P,
   UL,
 } from "@/components/Prose";
 
-export const metadata: Metadata = {
-  alternates: { canonical: "/biweekly-payments-guide" },
+export const metadata: Metadata = pageMetadata({
+  path: "/biweekly-payments-guide",
   title: "Biweekly Payments: What They Really Save (and the Fees to Avoid)",
   description:
     "Paying half your mortgage every two weeks is not a trick — it is thirteen full payments a year instead of twelve. See the exact saving on a worked loan, the DIY alternative, and the pitfalls that eat the benefit.",
-};
+  type: "article",
+});
 
 const PUBLISHED = "September 20, 2026";
 
@@ -74,6 +77,30 @@ const PITFALLS = [
   ],
 ];
 
+/** 文中每一个金额都由 src/lib/loan.ts 生成，并经第二套独立实现复算比对 */
+const FAQ = [
+  {
+    q: "Is a biweekly plan really 13 payments a year?",
+    a: "Yes, and that is the whole mechanism. A year has 52 weeks, so paying every two weeks produces 26 half-payments, which is 13 full monthly payments instead of 12. No rate changes, no special terms. The one additional full payment each year is what removes the interest, because every dollar of it reduces the balance that interest is charged against — and that effect compounds for every remaining month of the loan.",
+  },
+  {
+    q: "Is it worth paying a fee for a biweekly plan?",
+    a: "No. Third-party services typically charge a few hundred dollars to set up plus a per-payment fee, and the entire financial effect on a $300,000 30-year loan at 6.50% — roughly $88,000 of avoided interest and nearly six years of payments removed — can be reproduced for nothing by paying your lender directly. The fee buys you an arithmetic change, not an exclusive product.",
+  },
+  {
+    q: "Can I get the same result without a biweekly plan?",
+    a: "Yes. The biweekly benefit is equivalent to adding about one twelfth of your monthly payment to each month's payment and designating it as principal-only. On a $300,000 30-year loan at 6.50% with a $1,896.20 payment, that is roughly an extra $158 a month, and it clears the loan in 290 months rather than 360 — within a rounding of the true biweekly result.",
+  },
+  {
+    q: "Do biweekly payments work on car loans and personal loans?",
+    a: "The arithmetic works on any amortising loan, because it depends only on how much of each payment reaches principal and how early. The practical obstacle is administrative: many car and personal loan servicers do not offer a biweekly option, and some use simple-interest contracts whose accrual and posting rules differ from a mortgage. On those loans the same benefit is easier to capture by adding a fixed extra amount to each monthly payment.",
+  },
+  {
+    q: "Will accelerating my mortgage hurt my credit?",
+    a: "Paying more than required does not by itself affect your credit score, and reducing the balance steadily lowers your loan-to-value ratio, which is generally a positive. Two things can go wrong in practice: a half-payment that posts as a partial payment can trigger a late fee or, worse, a reported late mark; and sending money to the loan instead of holding an emergency buffer can push you into new debt at a much higher rate when something unexpected happens.",
+  },
+];
+
 export default function BiweeklyPaymentsGuide() {
   return (
     <main className="mx-auto max-w-3xl px-4 pb-16 pt-12">
@@ -83,6 +110,7 @@ export default function BiweeklyPaymentsGuide() {
         path="/biweekly-payments-guide"
         siteUrl={SITE_URL}
         datePublished="2026-09-20"
+        dateModified="2026-09-26"
       />
 
       <article>
@@ -288,6 +316,8 @@ export default function BiweeklyPaymentsGuide() {
           you have an emergency fund. If the answer to all three is yes, the
           arithmetic is unambiguous.
         </P>
+
+        <Faq items={FAQ} />
 
         <ArticleFooter currentSlug="biweekly-payments-guide" />
       </article>

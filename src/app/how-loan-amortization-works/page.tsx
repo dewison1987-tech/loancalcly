@@ -1,22 +1,25 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { SITE_URL } from "@/lib/site";
+import { pageMetadata } from "@/lib/seo";
 import {
   A,
   ArticleFooter,
   ArticleSchema,
   Byline,
+  Faq,
   Formula,
   H2,
   P,
 } from "@/components/Prose";
 
-export const metadata: Metadata = {
-  alternates: { canonical: "/how-loan-amortization-works" },
+export const metadata: Metadata = pageMetadata({
+  path: "/how-loan-amortization-works",
   title: "How Loan Amortization Works (With a Month-by-Month Example)",
   description:
     "A plain-English explanation of loan amortization: the formula, a worked month-by-month example, when principal finally overtakes interest, and why extra early payments save so much.",
-};
+  type: "article",
+});
 
 const PUBLISHED = "September 20, 2026";
 
@@ -29,6 +32,30 @@ const SCHEDULE = [
   { m: 6, interest: "$1,597.94", principal: "$1,015.38", balance: "$293,989.18" },
 ];
 
+/** 文中每一个金额都由 src/lib/loan.ts 生成，并经第二套独立实现复算比对 */
+const FAQ = [
+  {
+    q: "Why is almost all of my early payment interest?",
+    a: "Because interest is charged on the balance outstanding, and at the start the balance is at its highest. On a $300,000 loan at 6.5% over 15 years, the first payment of $2,613.32 contains $1,625.00 of interest — about 62% of it — and only $988.32 reduces the debt. As the balance falls the interest charge falls with it, so the same fixed payment leaves progressively more for principal.",
+  },
+  {
+    q: "When does principal start to exceed interest?",
+    a: "The crossover depends on the rate and the term, and it arrives far sooner on a shorter loan. On $300,000 at 6.5% over 15 years it happens in month 53. On the same amount at the same rate over 30 years it does not happen until month 233 — more than nineteen years in which the majority of every payment services interest rather than reducing the debt.",
+  },
+  {
+    q: "Do extra payments really shorten the loan?",
+    a: "Yes, and by more than most people expect. Adding $200 a month to that $300,000 15-year loan repays it in 160 months instead of 180 and cuts total interest from $170,398 to $148,829 — a saving of $21,569. The extra payment removes principal early, which removes every future interest charge that principal would have generated. That is why the same extra payment made in the final year saves far less.",
+  },
+  {
+    q: "Is a 15-year loan always better than a 30-year loan?",
+    a: "It costs far less in total but much more each month, so the answer depends on your constraint. On $300,000 at 6.5%, the 15-year loan pays $170,398 of interest against $382,633 for the 30-year — a gap of $212,235. But the monthly payment is $2,613.32 against $1,896.20. Neither is universally right; what matters is choosing the term deliberately rather than accepting whichever one is proposed.",
+  },
+  {
+    q: "Does the amortization schedule include taxes and insurance?",
+    a: "No. Amortization covers principal and interest only. A real mortgage payment usually adds property tax, homeowners insurance, mortgage insurance where the down payment is below the lender's threshold, and sometimes HOA dues. None of those amounts reduces your loan balance, which is why a lender assesses you against a larger figure than any principal-and-interest number.",
+  },
+];
+
 export default function AmortizationGuide() {
   return (
     <main className="mx-auto max-w-3xl px-4 pb-16 pt-12">
@@ -38,6 +65,7 @@ export default function AmortizationGuide() {
         path="/how-loan-amortization-works"
         siteUrl={SITE_URL}
         datePublished="2026-09-20"
+        dateModified="2026-09-26"
       />
 
       <article>
@@ -282,6 +310,8 @@ export default function AmortizationGuide() {
           between a 15-year and a 30-year loan on the same amount is usually the
           single most eye-opening number in personal finance.
         </P>
+
+        <Faq items={FAQ} />
 
         <ArticleFooter currentSlug="how-loan-amortization-works" />
       </article>

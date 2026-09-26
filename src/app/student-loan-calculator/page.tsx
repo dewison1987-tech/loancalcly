@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import LoanCalculator from "@/components/LoanCalculator";
 import { SITE_URL } from "@/lib/site";
+import { pageMetadata } from "@/lib/seo";
 import {
   A,
   Byline,
@@ -14,12 +15,12 @@ import {
   UL,
 } from "@/components/Prose";
 
-export const metadata: Metadata = {
-  alternates: { canonical: "/student-loan-calculator" },
+export const metadata: Metadata = pageMetadata({
+  path: "/student-loan-calculator",
   title: "Student Loan Calculator — Payment, Interest and Payoff Date",
   description:
     "Calculate the monthly payment and total interest on a student loan, then see what a small extra payment each month does to the payoff date and the interest bill.",
-};
+});
 
 const REVIEWED = "September 20, 2026";
 

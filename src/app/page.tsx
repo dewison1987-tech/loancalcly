@@ -4,13 +4,14 @@ import LoanCalculator from "@/components/LoanCalculator";
 import { SITE_URL } from "@/lib/site";
 import { GUIDES } from "@/lib/guides";
 import { CALCULATORS } from "@/lib/calculators";
+import { pageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  alternates: { canonical: "/" },
+export const metadata: Metadata = pageMetadata({
+  path: "/",
   title: "Loan Calculator — Free Monthly Payment & Amortization Calculator",
   description:
     "Calculate your monthly loan payment, total interest and full amortization schedule. Free, instant and accurate for mortgages, car loans, personal loans and more.",
-};
+});
 
 const REVIEWED = "September 20, 2026";
 

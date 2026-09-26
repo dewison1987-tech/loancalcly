@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { SITE_URL } from "@/lib/site";
+import { pageMetadata } from "@/lib/seo";
 import {
   A,
   ArticleFooter,
@@ -7,6 +8,7 @@ import {
   Byline,
   Callout,
   DataTable,
+  Faq,
   Formula,
   H2,
   H3,
@@ -14,12 +16,13 @@ import {
   UL,
 } from "@/components/Prose";
 
-export const metadata: Metadata = {
-  alternates: { canonical: "/refinance-break-even-point" },
+export const metadata: Metadata = pageMetadata({
+  path: "/refinance-break-even-point",
   title: "Refinance Break-Even Point: How Long Until a Lower Rate Pays Off",
   description:
     "Work out the month a refinance pays for itself: closing costs divided by monthly saving, with a worked four-option example, the term-extension trap, and the cases where refinancing costs you money.",
-};
+  type: "article",
+});
 
 const PUBLISHED = "September 20, 2026";
 
@@ -66,6 +69,30 @@ const COSTS = [
   "Mortgage insurance premiums, where applicable",
 ];
 
+/** 文中每一个金额都由 src/lib/loan.ts 生成，并经第二套独立实现复算比对 */
+const FAQ = [
+  {
+    q: "How do I calculate my refinance break-even point?",
+    a: "Divide the total closing costs by the monthly payment saving. In the worked example on this page, $4,500 of costs against a $367.56 saving gives 12.2 months. Use the full cash-to-close figure from page 1 of your Loan Estimate rather than a total quoted verbally, because the costs you leave out are precisely the ones that make the break-even look better than it is.",
+  },
+  {
+    q: "What counts as a good break-even period?",
+    a: "Under 18 months is comfortable; 18 to 36 months is reasonable if you are confident you are staying put; 36 to 60 months is marginal; and anything over 60 months should be treated with suspicion. The number is only meaningful against your realistic holding period rather than your intended one — if you have moved twice in eight years, you do not have a five-year horizon.",
+  },
+  {
+    q: "Does refinancing always lower my monthly payment?",
+    a: "No. Shortening the term usually raises it. Refinancing a $350,000 balance from 7.50% with 27 years left into a 20-year loan at 6.50% raises the payment by $86.94 a month, so there is no payment-based break-even at all — and yet that same option saves $191,031 in interest. Break-even is a tool for payment-reduction refinances and a poor tool for term-reduction ones.",
+  },
+  {
+    q: "Should I refinance if I plan to move soon?",
+    a: "Usually not, because the closing costs are paid up front while the saving accrues month by month. If your break-even is 21 months and you expect to move in twelve, you lose money on the transaction even though the new rate is genuinely lower. The exception worth considering is a lender-credit refinance with little or no cash cost — but check whether that credit comes with a prepayment penalty that would claw the benefit back.",
+  },
+  {
+    q: "Is a no-cost refinance really free?",
+    a: "No. A so-called no-cost refinance means the lender covers the closing costs in exchange for a higher interest rate, so the cost moves off the closing table and into the loan. That can be a sensible trade if you expect to keep the loan only a short time, and a poor one if you keep it for years. Ask what rate you would have been offered without the credit — the gap is the price you are paying.",
+  },
+];
+
 export default function RefinanceBreakEvenGuide() {
   return (
     <main className="mx-auto max-w-3xl px-4 pb-16 pt-12">
@@ -75,6 +102,7 @@ export default function RefinanceBreakEvenGuide() {
         path="/refinance-break-even-point"
         siteUrl={SITE_URL}
         datePublished="2026-09-20"
+        dateModified="2026-09-26"
       />
 
       <article>
@@ -300,6 +328,8 @@ export default function RefinanceBreakEvenGuide() {
           side, because the option with the fastest break-even is frequently not
           the option that saves you the most money.
         </P>
+
+        <Faq items={FAQ} />
 
         <ArticleFooter currentSlug="refinance-break-even-point" />
       </article>

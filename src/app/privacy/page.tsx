@@ -2,13 +2,14 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { LegalPage, Section, Bullets, Ext } from "@/components/LegalPage";
 import { CONTACT_EMAIL } from "@/lib/site";
+import { pageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  alternates: { canonical: "/privacy" },
+export const metadata: Metadata = pageMetadata({
+  path: "/privacy",
   title: "Privacy policy",
   description:
     "How LoanCalcly handles data: what we collect, how cookies and third-party advertising work, and how you can opt out of personalised advertising.",
-};
+});
 
 const LAST_UPDATED = "September 25, 2026";
 

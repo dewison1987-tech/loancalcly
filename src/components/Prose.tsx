@@ -130,12 +130,15 @@ export function ArticleSchema({
   path,
   siteUrl,
   datePublished,
+  dateModified,
 }: {
   headline: string;
   description: string;
   path: string;
   siteUrl: string;
   datePublished: string;
+  /** 内容实际改动的日期（留空则等于 datePublished）。补 FAQ 这类真实内容变更要传 */
+  dateModified?: string;
 }) {
   const schema = {
     "@context": "https://schema.org",
@@ -145,7 +148,7 @@ export function ArticleSchema({
     author: { "@type": "Organization", name: "LoanCalcly Editorial" },
     publisher: { "@type": "Organization", name: "LoanCalcly", url: siteUrl },
     datePublished,
-    dateModified: datePublished,
+    dateModified: dateModified ?? datePublished,
     mainEntityOfPage: `${siteUrl}${path}`,
   };
   return (
@@ -163,6 +166,45 @@ export function JsonLd({ data }: { data: unknown }) {
       type="application/ld+json"
       dangerouslySetInnerHTML={{ __html: JSON.stringify(data) }}
     />
+  );
+}
+
+/** FAQ 的一组问答 */
+export type FaqItem = { q: string; a: string };
+
+/**
+ * 指南页 FAQ —— **可见问答与 FAQPage schema 出自同一份数据**。
+ *
+ * 2026-09-26 全站自检发现 `/apr-vs-interest-rate` 有完整的 FAQ 区块却只输出了
+ * `Article` schema：手工维护「页面文案」和「schema 数组」两份必然漂移。
+ * 所以这里把两者绑成一个组件——写一次问答，可见内容与结构化数据同时产出。
+ *
+ * ⚠️ 答案刻意用**纯字符串**而非 JSX：Google 要求 FAQPage 的文本必须在页面上
+ * 可见，允许在答案里插链接就会出现「页面上有、schema 里没有」的偏差。
+ * 需要内链时写在 FAQ 前后的正文里。
+ */
+export function Faq({ items }: { items: FaqItem[] }) {
+  return (
+    <>
+      <JsonLd
+        data={{
+          "@context": "https://schema.org",
+          "@type": "FAQPage",
+          mainEntity: items.map((f) => ({
+            "@type": "Question",
+            name: f.q,
+            acceptedAnswer: { "@type": "Answer", text: f.a },
+          })),
+        }}
+      />
+      <H2>Frequently asked questions</H2>
+      {items.map((f) => (
+        <div key={f.q}>
+          <H3>{f.q}</H3>
+          <P>{f.a}</P>
+        </div>
+      ))}
+    </>
   );
 }
 
