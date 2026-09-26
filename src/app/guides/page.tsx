@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { GUIDES } from "@/lib/guides";
-import { A, DataTable, H2, P } from "@/components/Prose";
+import { A, AuthorLink, DataTable, H2, P } from "@/components/Prose";
 import { SITE_URL } from "@/lib/site";
 import { pageMetadata } from "@/lib/seo";
 
@@ -9,7 +9,7 @@ export const metadata: Metadata = pageMetadata({
   path: "/guides",
   title: "Loan Guides — Plain-English Explainers on Borrowing Costs",
   description:
-    "Plain-English guides to how loans actually work: amortization, comparing offers, APR versus interest rate, biweekly payments and refinance break-even.",
+    "Plain-English guides to how loans actually work: amortization, comparing offers, APR versus interest rate, 15-year versus 30-year terms, affordability and refinance break-even.",
 });
 
 const REVIEWED = "September 20, 2026";
@@ -50,7 +50,7 @@ export default function GuidesIndex() {
 
       <H2>Where to start</H2>
       <P>
-        The five guides are not a course to be read in order — they answer five
+        The seven guides are not a course to be read in order — they answer seven
         different questions. Find the one closest to your situation:
       </P>
       <DataTable
@@ -85,6 +85,18 @@ export default function GuidesIndex() {
             "Will refinancing actually save me money, or just lower the payment?",
             <A key="q5" href="/refinance-break-even-point">
               Refinance break-even point
+            </A>,
+          ],
+          [
+            "Should I take the 15-year term or the 30-year one?",
+            <A key="q6" href="/15-vs-30-year-mortgage">
+              15-year vs 30-year mortgage
+            </A>,
+          ],
+          [
+            "How much can I borrow without stretching myself?",
+            <A key="q7" href="/how-much-house-can-i-afford">
+              How much house can I afford?
             </A>,
           ],
         ]}
@@ -131,9 +143,8 @@ export default function GuidesIndex() {
         insurance can be cancelled, income-driven repayment formulas. On those
         points a guide says so and points you to the document that governs,
         rather than presenting a national generalisation as though it were a
-        fact. Every guide is reviewed by{" "}
-        <span className="font-medium text-gray-700">LoanCalcly Editorial</span>{" "}
-        and lists the date it was last checked.
+        fact. Every guide is reviewed by <AuthorLink /> and lists the date it
+        was last checked.
       </P>
 
       <section className="mt-12 rounded-xl border border-gray-200 bg-white p-5">
@@ -149,11 +160,10 @@ export default function GuidesIndex() {
       </section>
 
       <p className="mt-10 border-t border-gray-200 pt-5 text-sm text-gray-500">
-        Reviewed by{" "}
-        <span className="font-medium text-gray-700">LoanCalcly Editorial</span> ·
-        Last reviewed {REVIEWED}. These guides are educational and are not
-        financial advice. Spot an error? <A href="/contact">Tell us</A> — see
-        also our <A href="/disclaimer">disclaimer</A>.
+        Reviewed by <AuthorLink /> · Last reviewed {REVIEWED}. These guides are
+        educational and are not financial advice. Spot an error?{" "}
+        <A href="/contact">Tell us</A> — see also our{" "}
+        <A href="/disclaimer">disclaimer</A>.
       </p>
     </main>
   );

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { CALCULATORS } from "@/lib/calculators";
 import { GUIDES } from "@/lib/guides";
-import { A, JsonLd, P } from "@/components/Prose";
+import { A, AuthorLink, JsonLd, P } from "@/components/Prose";
 import { SITE_URL } from "@/lib/site";
 import { pageMetadata } from "@/lib/seo";
 
@@ -10,7 +10,7 @@ export const metadata: Metadata = pageMetadata({
   path: "/calculators",
   title: "Free Loan Calculators — Mortgage, Auto, Personal and Student",
   description:
-    "Five free loan calculators: mortgage with tax and insurance, auto loans with trade-in and sales tax, personal loans with fee arithmetic, student loans and full amortization schedules.",
+    "Six free loan calculators: mortgage with tax and insurance, home affordability worked backwards from your income, auto loans with trade-in and sales tax, personal loans with fee arithmetic, student loans and full amortization schedules.",
 });
 
 const REVIEWED = "September 20, 2026";
@@ -41,13 +41,14 @@ export default function CalculatorsIndex() {
         Loan calculators
       </h1>
       <P>
-        Five calculators, one shared calculation engine and one shared set of{" "}
+        Six calculators, one shared calculation engine and one shared set of{" "}
         <A href="/how-loan-amortization-works">explainers</A>. Each one covers a
         different kind of borrowing rather than a different cosmetic preset — the
         mortgage calculator folds in property tax, insurance and mortgage
-        insurance; the auto calculator builds the amount financed from a trade-in
-        and sales tax; the personal loan page starts from the fee that never
-        appears in the headline rate.
+        insurance; the affordability calculator runs the same question backwards,
+        from your income to a price; the auto calculator builds the amount
+        financed from a trade-in and sales tax; the personal loan page starts
+        from the fee that never appears in the headline rate.
       </P>
       <P>
         Every figure on every page comes from the same code, and every number
@@ -84,7 +85,7 @@ export default function CalculatorsIndex() {
           If you just want a payment figure and a full schedule for a
           fixed-rate loan, the{" "}
           <A href="/">general loan calculator</A> does that in one screen. The
-          five calculators above add the parts that differ by product — tax
+          six calculators above add the parts that differ by product — tax
           treatment, trade-ins, origination fees and the like.
         </p>
       </section>
@@ -112,10 +113,9 @@ export default function CalculatorsIndex() {
       </section>
 
       <p className="mt-10 border-t border-gray-200 pt-5 text-sm text-gray-500">
-        Reviewed by{" "}
-        <span className="font-medium text-gray-700">LoanCalcly Editorial</span> ·
-        Last reviewed {REVIEWED}. Every calculator here produces an estimate and
-        nothing on this site is financial advice. Spot an error?{" "}
+        Reviewed by <AuthorLink /> · Last reviewed {REVIEWED}. Every calculator
+        here produces an estimate and nothing on this site is financial advice.
+        Spot an error?{" "}
         <A href="/contact">Tell us</A> — see also our{" "}
         <A href="/disclaimer">disclaimer</A>.
       </p>

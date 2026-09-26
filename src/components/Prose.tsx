@@ -1,6 +1,8 @@
 import Link from "next/link";
-import { relatedGuides, type Guide } from "@/lib/guides";
-import { relatedCalculators, type Calculator } from "@/lib/calculators";
+import type { Guide } from "@/lib/guides";
+import type { Calculator } from "@/lib/calculators";
+import { relatedCalculators, relatedGuides } from "@/lib/related";
+import { AUTHOR, SITE_NAME } from "@/lib/site";
 
 /* ── 排版原子 ─────────────────────────────────────────────── */
 
@@ -113,12 +115,25 @@ export function DataTable({
 
 /* ── 文章框架 ─────────────────────────────────────────────── */
 
+/**
+ * 作者署名链接。指向 /methodology —— 那里有作者简介与数字验证流程，
+ * 是本站 E-E-A-T 的落点。署名来源是 site.ts 的 AUTHOR 常量（单点可改）。
+ */
+export function AuthorLink() {
+  return (
+    <Link
+      href="/methodology"
+      className="font-medium text-gray-700 underline underline-offset-2 hover:text-emerald-700"
+    >
+      {AUTHOR.name}
+    </Link>
+  );
+}
+
 export function Byline({ published }: { published: string }) {
   return (
     <p className="mt-3 text-sm text-gray-500">
-      Reviewed by{" "}
-      <span className="font-medium text-gray-700">LoanCalcly Editorial</span> ·
-      Published {published}
+      By <AuthorLink /> · Published {published}
     </p>
   );
 }
@@ -145,8 +160,15 @@ export function ArticleSchema({
     "@type": "Article",
     headline,
     description,
-    author: { "@type": "Organization", name: "LoanCalcly Editorial" },
-    publisher: { "@type": "Organization", name: "LoanCalcly", url: siteUrl },
+    // E-E-A-T：author 用**真人**（Person），不是机构。本站属 YMYL（金融），
+    // 「一个没有人的金融站」正是最容易被判低价值的形态。
+    author: {
+      "@type": "Person",
+      name: AUTHOR.name,
+      url: `${siteUrl}/methodology`,
+    },
+    reviewedBy: { "@type": "Person", name: AUTHOR.name },
+    publisher: { "@type": "Organization", name: SITE_NAME, url: siteUrl },
     datePublished,
     dateModified: dateModified ?? datePublished,
     mainEntityOfPage: `${siteUrl}${path}`,
@@ -211,6 +233,7 @@ export function Faq({ items }: { items: FaqItem[] }) {
 /** 指南底部：内链 + 免责 */
 export function ArticleFooter({ currentSlug }: { currentSlug: string }) {
   const related: Guide[] = relatedGuides(currentSlug, 4);
+  const calculators: Calculator[] = relatedCalculators(currentSlug, 3);
   return (
     <>
       <section className="mt-12 border-t border-gray-200 pt-6">
@@ -224,8 +247,26 @@ export function ArticleFooter({ currentSlug }: { currentSlug: string }) {
           ))}
         </ul>
         <p className="mt-3 text-sm text-gray-500">
-          Run your own numbers in the <A href="/">loan calculator</A>, or see{" "}
-          <A href="/calculators">all calculators</A>.
+          Run your own numbers in the <A href="/">loan calculator</A>.
+        </p>
+      </section>
+
+      {/* 指南 → 计算器这一跳此前是缺的（全文只有页脚一条「loan calculator」）。
+          对「读完一篇文章想算自己的数」的读者，这是最有效的一次点击。 */}
+      <section className="mt-10 border-t border-gray-200 pt-6">
+        <h2 className="text-lg font-semibold text-gray-900">
+          Calculators for this topic
+        </h2>
+        <ul className="mt-3 space-y-2 text-gray-600">
+          {calculators.map((c) => (
+            <li key={c.slug}>
+              <A href={`/${c.slug}`}>{c.title}</A>
+              <span className="text-gray-500"> — {c.summary}</span>
+            </li>
+          ))}
+        </ul>
+        <p className="mt-3 text-sm text-gray-500">
+          <A href="/calculators">See all calculators</A>
         </p>
       </section>
 

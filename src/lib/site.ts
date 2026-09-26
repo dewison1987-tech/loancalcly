@@ -30,4 +30,36 @@ export const SITE_NAME = "LoanCalcly";
  */
 export const CONTACT_EMAIL = "hello@loancalcly.com";
 
-export const EDITORIAL_BYLINE = "LoanCalcly Editorial";
+/**
+ * 作者署名（唯一来源）。
+ *
+ * 2026-09-26 决定：把署名从机构化的「LoanCalcly Editorial」升级为真人署名。
+ * 原因是 E-E-A-T —— 本站属 YMYL（金融），Google 对这个品类的作者真实性
+ * 要求最严；一个「没有人的金融站」是最容易被判低价值的形态。
+ *
+ * ⚠️ **底线：bio 里的每一句都必须是可核实的事实。**
+ * 2026 年 Google 已把「虚构作者人设」（编造姓名 + 编造资历 + 库图头像）
+ * 明确列为垃圾内容 —— 编一个不存在的「CFA 房贷专家」比不署名更糟。
+ * 所以这里只陈述真实背景，不堆砌头衔、不虚构执业年限。
+ *
+ * ⚠️ 改笔名 / 改简介只动这一个常量：`Byline`、`ArticleSchema`、
+ * `/methodology` 页、`/about` 页全部从这里取值。
+ */
+export const AUTHOR = {
+  /** 对外署名（英文笔名）。换成任何你想用的名字，全站自动跟随。 */
+  name: "David Chen",
+  /** 用于潜在的 /authors/<slug> 路由，目前只出现在 schema 与页面锚点里 */
+  slug: "david-chen",
+  /** 一句话角色，出现在 byline 与结构化数据中 */
+  shortRole: "personal finance editor",
+  /**
+   * 作者简介段落。
+   * 事实依据：作者本人具备证券行业从业背景，长期做量化与因子分析，
+   * 熟悉现值/折现/本息拆分这套数学 —— 与贷款摊销是同一套东西。
+   * 未虚构任何执业资格、年限或雇主。
+   */
+  bio: [
+    "David Chen writes about borrowing costs and personal finance. He came to the subject from securities analysis, where the same amortisation mathematics decides what an instrument is worth: present value, discounting, and the month-by-month split between interest and principal.",
+    "He is not a lender, a broker or a mortgage adviser, and nothing on this site is personalised advice. What he brings to it is a habit carried over from quantitative work — never publish a number that has not been computed twice, by two independent routes.",
+  ],
+} as const;

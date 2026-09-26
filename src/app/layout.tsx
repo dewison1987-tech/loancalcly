@@ -3,7 +3,8 @@ import { Geist, Geist_Mono } from "next/font/google";
 import Link from "next/link";
 import SiteAnalytics from "@/components/SiteAnalytics";
 import AdSense from "@/components/AdSense";
-import { SITE_URL, SITE_NAME, EDITORIAL_BYLINE } from "@/lib/site";
+import { AUTHOR, CONTACT_EMAIL, SITE_NAME, SITE_URL } from "@/lib/site";
+import { JsonLd } from "@/components/Prose";
 import { CALCULATORS } from "@/lib/calculators";
 import { GUIDES } from "@/lib/guides";
 import "./globals.css";
@@ -99,6 +100,37 @@ function FooterGroup({
   );
 }
 
+/**
+ * 站点级实体。E-E-A-T 的地基：Google 需要知道「这个站是谁做的」，
+ * 而不仅仅是有哪些页面。两个实体用 @id 互相引用，避免被解析成两个无关主体。
+ *
+ * ⚠️ 刻意**不加** `SearchAction`：本站没有站内搜索。在结构化数据里声明
+ * 一个不存在的能力属于不实描述，比缺字段更糟 —— 同理，没有真实社交账号
+ * 就不写 `sameAs`。
+ */
+const ORGANIZATION_SCHEMA = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "@id": `${SITE_URL}/#organization`,
+  name: SITE_NAME,
+  url: SITE_URL,
+  email: CONTACT_EMAIL,
+  logo: { "@type": "ImageObject", url: `${SITE_URL}/icon.svg` },
+  description:
+    "Independent loan payment and amortisation calculators with a published verification method.",
+  founder: { "@type": "Person", name: AUTHOR.name, url: `${SITE_URL}/methodology` },
+};
+
+const WEBSITE_SCHEMA = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "@id": `${SITE_URL}/#website`,
+  name: SITE_NAME,
+  url: SITE_URL,
+  inLanguage: "en",
+  publisher: { "@id": `${SITE_URL}/#organization` },
+};
+
 export default function RootLayout({ children }: LayoutProps<"/">) {
   const year = new Date().getFullYear();
   return (
@@ -107,6 +139,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-gray-50">
+        <JsonLd data={[ORGANIZATION_SCHEMA, WEBSITE_SCHEMA]} />
         <header className="border-b border-gray-200 bg-white">
           <nav className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-y-2 px-4 py-4">
             <Link
@@ -180,10 +213,13 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
               </p>
 
               <p className="mt-3 text-xs text-gray-500">
-                © {year} LoanCalcly · Calculator content reviewed by{" "}
-                <span className="font-medium text-gray-700">
-                  {EDITORIAL_BYLINE}
-                </span>
+                © {year} {SITE_NAME} · Calculator content reviewed by{" "}
+                <Link
+                  href="/methodology"
+                  className="font-medium text-gray-700 underline underline-offset-2 hover:text-emerald-700"
+                >
+                  {AUTHOR.name}
+                </Link>
                 . All trademarks are the property of their respective owners.
               </p>
             </div>

@@ -270,6 +270,175 @@ export function autoAmountFinanced({
   return { taxableBase, salesTax, amountFinanced };
 }
 
+/* ── 可负担性：从收入反推房价（房贷计算器的反方向） ────────────── */
+
+export type AffordabilityInput = {
+  /** 家庭税前年收入 */
+  annualIncome: number;
+  /** 每月的其他债务还款：车贷、学贷、信用卡最低还款额 */
+  monthlyDebts: number;
+  /** 可用于首付的现金 */
+  downPayment: number;
+  /** 年利率 % */
+  annualRate: number;
+  /** 贷款年限 */
+  years: number;
+  /** 房产税年税率，占房价的 % */
+  annualTaxRatePct: number;
+  /** 房屋保险，年额 */
+  annualInsurance: number;
+  /** HOA 物业费，月额 */
+  monthlyHoa: number;
+  /** 按揭保险费率，年率占贷款额的 %。传 0 表示不建模 PMI */
+  annualPmiRatePct: number;
+  /** 后端 DTI 上限 %：「住房支出 + 其他债务」占月收入的比重上限 */
+  maxBackEndDtiPct: number;
+  /** 前端 DTI 上限 %：「住房支出」占月收入的比重上限 */
+  maxFrontEndDtiPct: number;
+};
+
+export type AffordabilityResult = {
+  maxHomePrice: number;
+  loanAmount: number;
+  monthlyPrincipalInterest: number;
+  monthlyTax: number;
+  monthlyInsurance: number;
+  monthlyHoa: number;
+  monthlyPmi: number;
+  /** 住房支出合计 = P&I + 税 + 保险 + HOA + PMI */
+  monthlyHousing: number;
+  /** 实际前端比率 %（住房支出 ÷ 月收入） */
+  frontEndRatioPct: number;
+  /** 实际后端比率 %（(住房支出 + 其他债务) ÷ 月收入） */
+  backEndRatioPct: number;
+  /** 哪个上限先触发 */
+  bindingConstraint: "front" | "back" | "none";
+  /** 受 20% 首付门槛限制（LTV 卡在 80%）时为 true */
+  cappedByLtv: boolean;
+  downPaymentPct: number;
+  hasPmi: boolean;
+};
+
+/**
+ * 从收入反推可负担房价。
+ *
+ * 与 mortgage-calculator 的方向相反：那个是「给价格算月供」，这个是
+ * 「给收入算价格」。房贷场景真正的约束是 DTI 而不是房价本身，所以
+ * 可负担金额的瓶颈在月供侧。
+ *
+ * ### 为什么是闭式解而不是迭代
+ *
+ * 表面上看这里有个循环依赖：PMI 取决于贷款额，贷款额取决于可承受月供，
+ * 而可承受月供又要减掉 PMI。三种朴素解法（先假设收 / 先假设不收 / 循环
+ * 迭代到收敛）要么会错、要么结果依赖迭代起点。
+ *
+ * 但 PMI 是贷款额的**线性**函数，而 LTV=80% 只是贷款额上的一条硬边界
+ * （贷款额 ≤ 4 × 首付时首付即达 20%，不收 PMI）。于是解只有三种情形，
+ * 各自有解析形式，按顺序判定即可 —— 结果与迭代无关，可被第二套实现
+ * 逐位复算。这也是本站「算术只写一处、且必须能独立复核」的要求。
+ *
+ * 设 factor 为等额本息每借 1 元的月供系数，taxRate 为房产税的月系数，
+ * cap 为 DTI 允许的最大住房月支出：
+ *   无 PMI：L₀ = (cap − 固定支出 − 首付×taxRate) / (factor + taxRate)
+ *   有 PMI：L₁ = (cap − 固定支出 − 首付×taxRate) / (factor + taxRate + pmiRate)
+ * 因为分母更大，恒有 L₁ < L₀。
+ */
+export function affordableHomePrice(
+  input: AffordabilityInput
+): AffordabilityResult {
+  const {
+    annualIncome,
+    monthlyDebts,
+    downPayment,
+    annualRate,
+    years,
+    annualTaxRatePct,
+    annualInsurance,
+    monthlyHoa,
+    annualPmiRatePct,
+    maxBackEndDtiPct,
+    maxFrontEndDtiPct,
+  } = input;
+
+  const monthlyIncome = annualIncome / 12;
+  const n = Math.max(1, Math.round(years * 12));
+  const r = annualRate / 100 / 12;
+  const factor = r === 0 ? 1 / n : (r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
+  const taxRate = annualTaxRatePct / 100 / 12; // 月房产税 ÷ 房价
+  const pmiRate = annualPmiRatePct / 100 / 12; // 月 PMI ÷ 贷款额
+  const fixed = annualInsurance / 12 + monthlyHoa;
+
+  // DTI 允许的住房月支出上限：前端与后端取更紧的一个
+  const capByFront = monthlyIncome * (maxFrontEndDtiPct / 100);
+  const capByBack = monthlyIncome * (maxBackEndDtiPct / 100) - monthlyDebts;
+  const cap = Math.min(capByFront, capByBack);
+  const bindingConstraint: AffordabilityResult["bindingConstraint"] =
+    monthlyIncome <= 0 ? "none" : capByFront <= capByBack ? "front" : "back";
+
+  const numerator = cap - fixed - downPayment * taxRate;
+  const loanNoPmi = numerator / (factor + taxRate);
+  const loanWithPmi =
+    pmiRate > 0 ? numerator / (factor + taxRate + pmiRate) : loanNoPmi;
+  const ltvCap = 4 * downPayment; // 贷款额到达首付的 4 倍时 LTV=80%
+
+  let loanAmount: number;
+  let hasPmi: boolean;
+  let cappedByLtv = false;
+
+  if (cap <= 0 || numerator <= 0) {
+    // 收入扛不住现有债务 + 固定支出，或首付为 0 且要收 PMI
+    loanAmount = 0;
+    hasPmi = false;
+  } else if (pmiRate <= 0) {
+    loanAmount = loanNoPmi;
+    hasPmi = false;
+  } else if (loanNoPmi <= ltvCap) {
+    // 首付已达 20%，自洽：不收 PMI
+    loanAmount = loanNoPmi;
+    hasPmi = false;
+  } else if (loanWithPmi > ltvCap) {
+    // 收着 PMI 仍够不到 20% 门槛，自洽：收 PMI
+    loanAmount = loanWithPmi;
+    hasPmi = true;
+  } else {
+    // 中间地带：贷款额一旦超过 4×首付就会触发 PMI，而 PMI 又把它压回来。
+    // 真实答案是 LTV 卡在 80%，此时恰好不收 PMI。
+    loanAmount = ltvCap;
+    hasPmi = false;
+    cappedByLtv = true;
+  }
+
+  loanAmount = Math.max(0, loanAmount);
+  const maxHomePrice = downPayment + loanAmount;
+
+  const monthlyPrincipalInterest = loanAmount * factor;
+  const monthlyTax = maxHomePrice * taxRate;
+  const monthlyPmi = hasPmi ? loanAmount * pmiRate : 0;
+  const monthlyHousing =
+    monthlyPrincipalInterest + monthlyTax + annualInsurance / 12 + monthlyHoa + monthlyPmi;
+
+  return {
+    maxHomePrice,
+    loanAmount,
+    monthlyPrincipalInterest,
+    monthlyTax,
+    monthlyInsurance: annualInsurance / 12,
+    monthlyHoa,
+    monthlyPmi,
+    monthlyHousing,
+    frontEndRatioPct:
+      monthlyIncome > 0 ? (monthlyHousing / monthlyIncome) * 100 : 0,
+    backEndRatioPct:
+      monthlyIncome > 0
+        ? ((monthlyHousing + monthlyDebts) / monthlyIncome) * 100
+        : 0,
+    bindingConstraint,
+    cappedByLtv,
+    downPaymentPct: maxHomePrice > 0 ? (downPayment / maxHomePrice) * 100 : 0,
+    hasPmi,
+  };
+}
+
 export function formatMoney(v: number, fractionDigits = 2): string {
   if (!Number.isFinite(v)) return "$0";
   return v.toLocaleString("en-US", {

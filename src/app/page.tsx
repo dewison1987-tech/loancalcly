@@ -5,6 +5,7 @@ import { SITE_URL } from "@/lib/site";
 import { GUIDES } from "@/lib/guides";
 import { CALCULATORS } from "@/lib/calculators";
 import { pageMetadata } from "@/lib/seo";
+import { AuthorLink } from "@/components/Prose";
 
 export const metadata: Metadata = pageMetadata({
   path: "/",
@@ -260,9 +261,7 @@ export default function Home() {
       </section>
 
       <p className="mt-10 max-w-3xl border-t border-gray-200 pt-5 text-sm text-gray-500">
-        Reviewed by{" "}
-        <span className="font-medium text-gray-700">LoanCalcly Editorial</span>{" "}
-        · Last reviewed {REVIEWED}. Spot an error?{" "}
+        Reviewed by <AuthorLink /> · Last reviewed {REVIEWED}. Spot an error?{" "}
         <Link
           href="/contact"
           className="text-emerald-700 underline underline-offset-2 hover:text-emerald-900"

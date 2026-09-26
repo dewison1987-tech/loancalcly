@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { LegalPage, Section, Bullets, Ext } from "@/components/LegalPage";
-import { CONTACT_EMAIL } from "@/lib/site";
+import { AUTHOR, CONTACT_EMAIL } from "@/lib/site";
 import { pageMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = pageMetadata({
@@ -11,7 +11,7 @@ export const metadata: Metadata = pageMetadata({
     "LoanCalcly is a free, independent loan payment calculator. Learn how our calculator works, how we verify its accuracy, and who is behind it.",
 });
 
-const LAST_UPDATED = "September 25, 2026";
+const LAST_UPDATED = "September 26, 2026";
 
 export default function AboutPage() {
   return (
@@ -131,15 +131,22 @@ export default function AboutPage() {
 
       <Section title="Who is behind it">
         <p>
-          LoanCalcly is built and maintained by a small independent team of
-          software and personal-finance writers. We are not a lender, a broker
-          or a lead-generation company, and we do not sell your information —
-          because we never collect it in the first place.
+          LoanCalcly is built and maintained by a small independent team. We are
+          not a lender, a broker or a lead-generation company, and we do not sell
+          your information — because we never collect it in the first place.
         </p>
+        <p>{AUTHOR.bio[0]}</p>
+        <p>{AUTHOR.bio[1]}</p>
         <p>
-          Editorial oversight for calculator content and any explanatory
-          articles is handled under the byline{" "}
-          <strong>LoanCalcly Editorial</strong>.
+          Calculator content and the explanatory guides carry his byline, and
+          every page lists the date it was last checked. Our{" "}
+          <Link
+            href="/methodology"
+            className="text-emerald-700 underline underline-offset-2 hover:text-emerald-900"
+          >
+            methodology page
+          </Link>{" "}
+          sets out exactly how each figure is produced and verified.
         </p>
       </Section>
 
