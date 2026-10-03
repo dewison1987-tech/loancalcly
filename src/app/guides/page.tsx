@@ -9,10 +9,10 @@ export const metadata: Metadata = pageMetadata({
   path: "/guides",
   title: "Loan Guides — Plain-English Explainers on Borrowing Costs",
   description:
-    "Plain-English guides to how loans work: amortization, APR versus interest rate, PMI, closing costs, debt-to-income and paying a loan off early.",
+    "Plain-English guides to how loans work: amortization, APR versus interest rate, PMI, closing costs, debt-to-income, refinancing, FHA versus conventional, rent versus buy and paying a loan off early.",
 });
 
-const REVIEWED = "September 26, 2026";
+const REVIEWED = "October 3, 2026";
 
 export default function GuidesIndex() {
   const schema = {
@@ -50,8 +50,8 @@ export default function GuidesIndex() {
 
       <H2>Where to start</H2>
       <P>
-        The eleven guides are not a course to be read in order — they answer
-        eleven different questions. Find the one closest to your situation:
+        The fifteen guides are not a course to be read in order — they answer
+        fifteen different questions. Find the one closest to your situation:
       </P>
       <DataTable
         head={["If your question is…", "Start here"]}
@@ -121,6 +121,30 @@ export default function GuidesIndex() {
             "Does paying extra now really save that much more than paying later?",
             <A key="q11" href="/how-to-pay-off-a-loan-early">
               How to pay off a loan early
+            </A>,
+          ],
+          [
+            "Someone quoted me a lower rate — why might refinancing still cost me more?",
+            <A key="q12" href="/how-to-refinance-a-mortgage">
+              How to refinance a mortgage
+            </A>,
+          ],
+          [
+            "Is an FHA loan actually cheaper than a conventional one?",
+            <A key="q13" href="/fha-vs-conventional-loan">
+              FHA vs conventional loan
+            </A>,
+          ],
+          [
+            "Should I be buying at all, or is renting the better deal?",
+            <A key="q14" href="/rent-vs-buy">
+              Rent vs buy: the break-even year
+            </A>,
+          ],
+          [
+            "Should I take a HELOC or a fixed home equity loan?",
+            <A key="q15" href="/heloc-vs-home-equity-loan">
+              HELOC vs home equity loan
             </A>,
           ],
         ]}

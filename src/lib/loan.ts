@@ -515,6 +515,287 @@ export function affordableHomePrice(
   };
 }
 
+/* ── 租 vs 买：两条路径的净成本对比 ────────────────────────────── */
+
+export type RentVsBuyInput = {
+  /** 房价 */
+  homePrice: number;
+  /** 首付现金 */
+  downPayment: number;
+  /** 房贷年利率 % */
+  annualRate: number;
+  /** 房贷年限 */
+  years: number;
+  /** 房产税年率，占**房价**的 % */
+  annualTaxRatePct: number;
+  /** 房屋保险年额 */
+  annualInsurance: number;
+  /** HOA 物业费月额 */
+  monthlyHoa: number;
+  /** 维护与修缮年率，占**房价**的 % */
+  annualMaintenancePct: number;
+  /** 买入一次性交易成本（含贷款手续费），占房价 % */
+  buyingClosingCostPct: number;
+  /** 卖出交易成本（中介佣金等），占成交价 % */
+  sellingCostPct: number;
+  /** 房价年增值率 % */
+  annualAppreciationPct: number;
+  /** 当前月租 */
+  monthlyRent: number;
+  /**
+   * 年通胀率 %，**同时**用于租金与业主的经常性支出（税、保险、HOA、维护）。
+   *
+   * 刻意共用一个率：若只让租金上涨、业主支出原地不动，就等于偷偷把结论
+   * 推向买房。真正该保留的不对称是「月供（本息）固定、租金上涨」——
+   * 那是固定利率贷款真实存在的好处，不需要额外制造。
+   */
+  annualInflationPct: number;
+  /**
+   * 首付与买入费用若不买房、而是拿去投资的年化收益率 %。
+   * 这是租买对比里唯一一个「不写出来就等于零、写出来又要解释」的项，
+   * 所以显式入参，由调用方声明口径。
+   */
+  investmentReturnPct: number;
+  /** 持有年数 */
+  holdYears: number;
+};
+
+export type RentVsBuyYear = {
+  year: number;
+  buyNetCost: number;
+  rentNetCost: number;
+  /** rentNetCost − buyNetCost；正数 = 该时点买入更省 */
+  advantage: number;
+};
+
+export type RentVsBuyResult = {
+  holdYears: number;
+  holdMonths: number;
+  monthlyPrincipalInterest: number;
+  /** 首付 + 买入交易成本 */
+  upfrontCash: number;
+
+  /* 买入路径 */
+  paidInterest: number;
+  paidPrincipal: number;
+  paidTax: number;
+  paidInsurance: number;
+  paidHoa: number;
+  paidMaintenance: number;
+  /** 税 + 保险 + HOA + 维护 */
+  paidCarrying: number;
+  buyingClosingCosts: number;
+  /** 首付 + 买入费用 + 持有期全部支出 */
+  totalOwnerCashOut: number;
+  homeValueAtExit: number;
+  mortgageBalanceAtExit: number;
+  sellingCosts: number;
+  /** 成交价 − 剩余贷款 − 卖出费用 */
+  netSaleProceeds: number;
+  /** 买入净成本 = totalOwnerCashOut − netSaleProceeds */
+  buyNetCost: number;
+
+  /* 租路径 */
+  rentPaid: number;
+  /** 租客把「比买房省下的月度差额」也持续投入后，组合在期末的价值 */
+  portfolioValue: number;
+  /** 期末前投入组合的月度差额累计（可为负：某些月份租金反而高于持有成本） */
+  contributionTotal: number;
+  /** 组合相对本金产生的收益 = portfolioValue − upfrontCash − contributionTotal */
+  investmentGain: number;
+  /** 租净成本 = rentPaid − investmentGain */
+  rentNetCost: number;
+
+  /* 结论 */
+  advantage: number;
+  better: "buy" | "rent";
+  /** 逐年扫描里第一个 advantage > 0 的年数；期间内未反转则为 null */
+  breakEvenYears: number | null;
+  byYear: RentVsBuyYear[];
+};
+
+/**
+ * 某个持有期下的租买净成本（不含逐年扫描，供 `rentVsBuy` 内部复用）。
+ *
+ * ### 净成本的定义（两个口径必须对称，否则结论是假的）
+ *
+ * 两边都按「现金流出 − 现金收回」计：
+ *   买入：流出 = 首付 + 买入费用 + 各月支出；收回 = 卖房净得
+ *   租房：流出 = 房租 + 那笔首付投入的资金；收回 = 投资变现额
+ *
+ * 相减后可得一个很好用的闭式：租客的本金原样收回、只有收益计入差额，
+ * 于是
+ *   **买入净成本 = 买卖两端交易成本 + 已付利息 + 持有期税费维护 − 房价增值**
+ * 首付与已还本金在两边自动抵消，不构成成本。这个等式是复算脚本的交叉校验点。
+ *
+ * ### 为什么必须给租客记「月度差额」的收益
+ *
+ * 第一版模型只把首付那笔钱算作投资本金，**不给租客记「月供高于房租」那部分
+ * 差额的投资收益**。本组参数下这个差额约 $900/月，15 年复利下来是六位数 ——
+ * 漏掉它不是精度问题，是**把结论定死推向买房**。两位数的金额可以忽略，
+ * 六位数的不能。
+ *
+ * 修正后两边口径完全对称：**两条路径每月的现金流出相同**（都等于持有成本），
+ * 区别只在这笔钱去了哪里 —— 买房进了房子，租房则房租之外的部分进了组合。
+ * 于是「谁更省」就等于「谁的期末资产更多」，不再依赖任何主观加权。
+ *
+ * ### 明确不建模的一项
+ * 租客保险（通常每月十几美元），量级小且两边都未计。
+ */
+function rentVsBuyCore(
+  input: RentVsBuyInput,
+  holdMonths: number
+): Omit<RentVsBuyResult, "byYear" | "breakEvenYears" | "better"> {
+  const {
+    homePrice,
+    downPayment,
+    annualRate,
+    years,
+    annualTaxRatePct,
+    annualInsurance,
+    monthlyHoa,
+    annualMaintenancePct,
+    buyingClosingCostPct,
+    sellingCostPct,
+    annualAppreciationPct,
+    monthlyRent,
+    annualInflationPct,
+    investmentReturnPct,
+  } = input;
+
+  const n = Math.max(1, Math.round(years * 12));
+  const payment = scheduledPayment(homePrice - downPayment, annualRate, n);
+  const run = runAmortization(homePrice - downPayment, annualRate, n);
+
+  const infl = annualInflationPct / 100;
+  // 通胀按「年」跳档（租约每年续一次、税单每年出一张），不按月复利
+  const step = (m: number) => Math.pow(1 + infl, Math.floor((m - 1) / 12));
+
+  const baseTax = (homePrice * annualTaxRatePct) / 100 / 12;
+  const baseIns = annualInsurance / 12;
+  const baseMaint = (homePrice * annualMaintenancePct) / 100 / 12;
+
+  const buyingClosingCosts = (homePrice * buyingClosingCostPct) / 100;
+  const upfrontCash = downPayment + buyingClosingCosts;
+
+  let paidInterest = 0;
+  let paidPrincipal = 0;
+  let paidTax = 0;
+  let paidInsurance = 0;
+  let paidHoa = 0;
+  let paidMaintenance = 0;
+  let rentPaid = 0;
+
+  // 租客组合：期初放入 upfrontCash，此后每月再投入「持有成本 − 当月租金」
+  const im = Math.pow(1 + investmentReturnPct / 100, 1 / 12) - 1;
+  let portfolio = upfrontCash;
+  let contributionTotal = 0;
+
+  for (let m = 1; m <= holdMonths; m++) {
+    const f = step(m);
+    let paymentThisMonth = 0;
+    // 贷款还清之后本息停止，但税费维护继续
+    if (m <= run.rows.length) {
+      const row = run.rows[m - 1];
+      // 用**计划月供**而非该期实际扣款：末期余额被清零时实际扣款会小几厘，
+      // 用它会让三个复算引擎在分位边界上产生伪差异。计划月供是确定性的。
+      paymentThisMonth = payment;
+      paidInterest += row.interest;
+      paidPrincipal += row.principal;
+    }
+    const taxM = baseTax * f;
+    const insM = baseIns * f;
+    const hoaM = monthlyHoa * f;
+    const maintM = baseMaint * f;
+    const rentM = monthlyRent * f;
+
+    paidTax += taxM;
+    paidInsurance += insM;
+    paidHoa += hoaM;
+    paidMaintenance += maintM;
+    rentPaid += rentM;
+
+    const ownerCashM = paymentThisMonth + taxM + insM + hoaM + maintM;
+    const contribution = ownerCashM - rentM;
+    portfolio = portfolio * (1 + im) + contribution;
+    contributionTotal += contribution;
+  }
+
+  const paidCarrying = paidTax + paidInsurance + paidHoa + paidMaintenance;
+  const totalOwnerCashOut =
+    upfrontCash + paidInterest + paidPrincipal + paidCarrying;
+
+  const appreciation = Math.pow(1 + annualAppreciationPct / 100, holdMonths / 12);
+  const homeValueAtExit = homePrice * appreciation;
+  const mortgageBalanceAtExit =
+    holdMonths >= run.rows.length ? 0 : run.rows[holdMonths - 1].balance;
+  const sellingCosts = (homeValueAtExit * sellingCostPct) / 100;
+  const netSaleProceeds = homeValueAtExit - mortgageBalanceAtExit - sellingCosts;
+  const buyNetCost = totalOwnerCashOut - netSaleProceeds;
+
+  const portfolioValue = portfolio;
+  const investmentGain = portfolioValue - upfrontCash - contributionTotal;
+  const rentNetCost = rentPaid - investmentGain;
+  const advantage = rentNetCost - buyNetCost;
+
+  return {
+    holdYears: holdMonths / 12,
+    holdMonths,
+    monthlyPrincipalInterest: payment,
+    upfrontCash,
+    paidInterest,
+    paidPrincipal,
+    paidTax,
+    paidInsurance,
+    paidHoa,
+    paidMaintenance,
+    paidCarrying,
+    buyingClosingCosts,
+    totalOwnerCashOut,
+    homeValueAtExit,
+    mortgageBalanceAtExit,
+    sellingCosts,
+    netSaleProceeds,
+    buyNetCost,
+    rentPaid,
+    portfolioValue,
+    contributionTotal,
+    investmentGain,
+    rentNetCost,
+    advantage,
+  };
+}
+
+/**
+ * 租 vs 买。返回指定持有期的净成本，外加逐年扫描（用于回答
+ * 「住多久才划算」—— 这是这个题目的真正问题，不是「哪个更便宜」）。
+ *
+ * 结论全部来自上面的现金流模型，没有一处是经验判断。
+ */
+export function rentVsBuy(input: RentVsBuyInput): RentVsBuyResult {
+  const maxYears = Math.max(1, Math.round(input.holdYears));
+  const byYear: RentVsBuyYear[] = [];
+  for (let y = 1; y <= maxYears; y++) {
+    const c = rentVsBuyCore(input, y * 12);
+    byYear.push({
+      year: y,
+      buyNetCost: c.buyNetCost,
+      rentNetCost: c.rentNetCost,
+      advantage: c.advantage,
+    });
+  }
+
+  const core = rentVsBuyCore(input, maxYears * 12);
+  const firstBuy = byYear.find((r) => r.advantage > 0);
+
+  return {
+    ...core,
+    better: core.advantage > 0 ? "buy" : "rent",
+    breakEvenYears: firstBuy ? firstBuy.year : null,
+    byYear,
+  };
+}
+
 export function formatMoney(v: number, fractionDigits = 2): string {
   if (!Number.isFinite(v)) return "$0";
   return v.toLocaleString("en-US", {

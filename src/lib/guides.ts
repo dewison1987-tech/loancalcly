@@ -9,11 +9,23 @@
  * 拿不到任何内链。扩到 20+ 页时这会直接把新页面变成孤岛。
  * 拓扑结构不能从数组位置里长出来，必须是人写下来的事实。
  *
- * ⚠️ 声明顺序有语义：`related` 里属于同一类型的项会**按声明顺序**取前 N 条
- * （指南页取 4 条相关指南 + 3 个相关计算器，计算器页取 3 条相关指南 + 4 个
- * 相关计算器）。想让某个页面被推荐出来，就要把它排在该类型的前 N 位。
+ * ⚠️ **声明即渲染（2026-10-03 收紧）**：每条 `related` 必须恰好是
+ * **4 个指南 slug + 3 个计算器 slug，共 7 条**，顺序即展示顺序。
+ * 之所以要卡死数量：`related.ts` 的 `pick()` 在声明不足时会**兜底补齐**
+ * （同簇优先，然后按注册表顺序）。兜底本身是安全网，但它会静默把内容
+ * 塞进页面 —— 第四批实测发现 `auto-loan-calculator` 被兜底注入到
+ * biweekly / closing-costs / rent-vs-buy 等毫不相关的指南页里，
+ * 原因只是它在 `CALCULATORS` 数组里排得靠前。**这正是「拓扑从数组位置里
+ * 长出来」的同一个病**，只不过这次是从另一个方向长。
+ * 所以：想推荐什么就写下来，数量写满，不留兜底的口子。
  */
-export type GuideCluster = "borrowing-basics" | "mortgage";
+export type GuideCluster =
+  | "borrowing-basics"
+  | "mortgage"
+  /** 买卖决策（rent-vs-buy）—— 刻意独立成簇，避免全站关键词困在房贷簇内循环 */
+  | "buying"
+  /** 房屋净值类产品（HELOC / home equity loan） */
+  | "equity";
 
 export type Guide = {
   slug: string;
@@ -43,11 +55,13 @@ export const GUIDES: Guide[] = [
     keyword: "how does loan amortization work",
     cluster: "borrowing-basics",
     related: [
-      "amortization-schedule",
       "how-to-pay-off-a-loan-early",
-      "mortgage-calculator",
       "15-vs-30-year-mortgage",
       "biweekly-payments-guide",
+      "heloc-vs-home-equity-loan",
+      "amortization-schedule",
+      "mortgage-calculator",
+      "personal-loan-calculator",
     ],
     updated: "2026-09-26",
   },
@@ -61,9 +75,11 @@ export const GUIDES: Guide[] = [
     related: [
       "apr-vs-interest-rate",
       "closing-costs-explained",
+      "how-loan-amortization-works",
+      "heloc-vs-home-equity-loan",
       "mortgage-calculator",
       "personal-loan-calculator",
-      "how-loan-amortization-works",
+      "auto-loan-calculator",
     ],
     updated: "2026-09-26",
   },
@@ -77,9 +93,11 @@ export const GUIDES: Guide[] = [
     related: [
       "how-to-compare-loan-offers",
       "closing-costs-explained",
+      "how-loan-amortization-works",
+      "heloc-vs-home-equity-loan",
       "personal-loan-calculator",
       "auto-loan-calculator",
-      "how-loan-amortization-works",
+      "mortgage-calculator",
     ],
     updated: "2026-09-26",
   },
@@ -92,10 +110,12 @@ export const GUIDES: Guide[] = [
     cluster: "mortgage",
     related: [
       "how-to-pay-off-a-loan-early",
-      "mortgage-calculator",
-      "amortization-schedule",
       "15-vs-30-year-mortgage",
       "refinance-break-even-point",
+      "how-to-refinance-a-mortgage",
+      "mortgage-calculator",
+      "amortization-schedule",
+      "personal-loan-calculator",
     ],
     updated: "2026-09-26",
   },
@@ -107,11 +127,13 @@ export const GUIDES: Guide[] = [
     keyword: "refinance break even point",
     cluster: "mortgage",
     related: [
+      "how-to-refinance-a-mortgage",
       "closing-costs-explained",
-      "mortgage-calculator",
       "15-vs-30-year-mortgage",
       "how-to-compare-loan-offers",
-      "apr-vs-interest-rate",
+      "mortgage-calculator",
+      "amortization-schedule",
+      "home-affordability-calculator",
     ],
     updated: "2026-09-26",
   },
@@ -123,13 +145,13 @@ export const GUIDES: Guide[] = [
     keyword: "15 vs 30 year mortgage",
     cluster: "mortgage",
     related: [
-      "mortgage-calculator",
-      "home-affordability-calculator",
       "how-to-remove-pmi",
       "debt-to-income-ratio",
       "how-much-house-can-i-afford",
-      "refinance-break-even-point",
-      "biweekly-payments-guide",
+      "rent-vs-buy",
+      "mortgage-calculator",
+      "home-affordability-calculator",
+      "amortization-schedule",
     ],
     updated: "2026-09-26",
   },
@@ -141,11 +163,13 @@ export const GUIDES: Guide[] = [
     keyword: "how much house can i afford",
     cluster: "mortgage",
     related: [
-      "home-affordability-calculator",
       "debt-to-income-ratio",
-      "mortgage-calculator",
       "15-vs-30-year-mortgage",
       "how-to-compare-loan-offers",
+      "rent-vs-buy",
+      "home-affordability-calculator",
+      "mortgage-calculator",
+      "amortization-schedule",
     ],
     updated: "2026-09-26",
   },
@@ -157,12 +181,13 @@ export const GUIDES: Guide[] = [
     keyword: "how to remove pmi",
     cluster: "mortgage",
     related: [
-      "mortgage-calculator",
       "how-much-house-can-i-afford",
-      "home-affordability-calculator",
       "15-vs-30-year-mortgage",
-      "amortization-schedule",
       "how-to-pay-off-a-loan-early",
+      "fha-vs-conventional-loan",
+      "mortgage-calculator",
+      "home-affordability-calculator",
+      "amortization-schedule",
     ],
     updated: "2026-09-26",
   },
@@ -175,9 +200,11 @@ export const GUIDES: Guide[] = [
     cluster: "mortgage",
     related: [
       "how-much-house-can-i-afford",
+      "how-to-remove-pmi",
+      "fha-vs-conventional-loan",
+      "15-vs-30-year-mortgage",
       "home-affordability-calculator",
       "mortgage-calculator",
-      "how-to-remove-pmi",
       "personal-loan-calculator",
     ],
     updated: "2026-09-26",
@@ -190,11 +217,13 @@ export const GUIDES: Guide[] = [
     keyword: "closing costs explained",
     cluster: "mortgage",
     related: [
+      "how-to-refinance-a-mortgage",
       "how-to-compare-loan-offers",
       "refinance-break-even-point",
       "apr-vs-interest-rate",
       "mortgage-calculator",
-      "15-vs-30-year-mortgage",
+      "personal-loan-calculator",
+      "amortization-schedule",
     ],
     updated: "2026-09-26",
   },
@@ -206,13 +235,87 @@ export const GUIDES: Guide[] = [
     keyword: "how to pay off a loan early",
     cluster: "borrowing-basics",
     related: [
-      "amortization-schedule",
       "how-loan-amortization-works",
+      "biweekly-payments-guide",
+      "heloc-vs-home-equity-loan",
+      "how-to-compare-loan-offers",
+      "amortization-schedule",
       "student-loan-calculator",
       "mortgage-calculator",
-      "biweekly-payments-guide",
     ],
     updated: "2026-09-26",
+  },
+  {
+    slug: "how-to-refinance-a-mortgage",
+    title: "How to refinance a mortgage",
+    summary:
+      "Why a lower rate can still cost you more: a 6.50% to 6.00% refinance cuts the payment by $371.38 and adds $93,849 of interest, while the same rate on a 20-year term saves $17,788.",
+    keyword: "how to refinance a mortgage",
+    cluster: "mortgage",
+    related: [
+      "refinance-break-even-point",
+      "closing-costs-explained",
+      "15-vs-30-year-mortgage",
+      "how-to-compare-loan-offers",
+      "mortgage-calculator",
+      "amortization-schedule",
+      "home-affordability-calculator",
+    ],
+    updated: "2026-10-03",
+  },
+  {
+    slug: "fha-vs-conventional-loan",
+    title: "FHA vs conventional loan",
+    summary:
+      "The same 6.50% rate on both products, so only the structure differs: FHA's 3.5% down payment saves $5,250 at closing and costs $72.95 a month, and the down payment advantage is exhausted after 71.97 months.",
+    keyword: "fha vs conventional loan",
+    cluster: "mortgage",
+    related: [
+      "how-to-remove-pmi",
+      "debt-to-income-ratio",
+      "how-much-house-can-i-afford",
+      "15-vs-30-year-mortgage",
+      "mortgage-calculator",
+      "home-affordability-calculator",
+      "amortization-schedule",
+    ],
+    updated: "2026-10-03",
+  },
+  {
+    slug: "rent-vs-buy",
+    title: "Rent vs buy: the break-even year",
+    summary:
+      "Buying is $38,538 more expensive than renting in year one and does not catch up until year 11. The full model, and how the answer moves when appreciation changes.",
+    keyword: "rent vs buy",
+    cluster: "buying",
+    related: [
+      "how-much-house-can-i-afford",
+      "15-vs-30-year-mortgage",
+      "debt-to-income-ratio",
+      "how-to-pay-off-a-loan-early",
+      "home-affordability-calculator",
+      "mortgage-calculator",
+      "amortization-schedule",
+    ],
+    updated: "2026-10-03",
+  },
+  {
+    slug: "heloc-vs-home-equity-loan",
+    title: "HELOC vs home equity loan",
+    summary:
+      "The same $60,000 at the same 8.00% costs either $27,356 or $108,447 in interest. What the two products share, where they diverge, and why the draw period drives the whole bill.",
+    keyword: "heloc vs home equity loan",
+    cluster: "equity",
+    related: [
+      "apr-vs-interest-rate",
+      "how-to-compare-loan-offers",
+      "how-to-pay-off-a-loan-early",
+      "how-loan-amortization-works",
+      "personal-loan-calculator",
+      "amortization-schedule",
+      "mortgage-calculator",
+    ],
+    updated: "2026-10-03",
   },
 ];
 

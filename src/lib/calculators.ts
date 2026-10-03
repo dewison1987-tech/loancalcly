@@ -4,8 +4,10 @@
  * 都从这里读取，新增一个计算器只需在数组里加一条 + 建一个页面。
  *
  * ⚠️ 与 guides.ts 同一约定：相关性靠 `related` 显式声明，不靠数组顺序。
- * 声明顺序有语义：计算器页取 3 条相关指南 + 4 个相关计算器，指南页取
- * 4 条相关指南 + 3 个相关计算器，同一类型内按声明顺序取前 N 条。
+ * **声明即渲染**：计算器页每条 `related` 恰好 **3 个指南 slug + 4 个计算器
+ * slug，共 7 条**，顺序即展示顺序；指南页则是 4 指南 + 3 计算器。
+ * 写满数量是为了不留兜底口子 —— `pick()` 在声明不足时会按注册表顺序补齐，
+ * 会把不相干的页面静默塞进来（第四批实测过）。
  */
 export type CalculatorCluster =
   | "property"
@@ -51,13 +53,13 @@ export const CALCULATORS: Calculator[] = [
     tag: "Property",
     cluster: "property",
     related: [
-      "15-vs-30-year-mortgage",
       "how-to-remove-pmi",
-      "how-much-house-can-i-afford",
-      "debt-to-income-ratio",
+      "how-to-refinance-a-mortgage",
+      "fha-vs-conventional-loan",
       "home-affordability-calculator",
       "amortization-schedule",
-      "biweekly-payments-guide",
+      "personal-loan-calculator",
+      "auto-loan-calculator",
     ],
     updated: "2026-09-26",
   },
@@ -72,9 +74,12 @@ export const CALCULATORS: Calculator[] = [
     cluster: "property",
     related: [
       "how-much-house-can-i-afford",
-      "debt-to-income-ratio",
-      "how-to-remove-pmi",
+      "fha-vs-conventional-loan",
+      "rent-vs-buy",
       "mortgage-calculator",
+      "amortization-schedule",
+      "personal-loan-calculator",
+      "auto-loan-calculator",
     ],
     updated: "2026-09-26",
   },
@@ -90,8 +95,11 @@ export const CALCULATORS: Calculator[] = [
     related: [
       "apr-vs-interest-rate",
       "how-to-pay-off-a-loan-early",
-      "personal-loan-calculator",
       "how-to-compare-loan-offers",
+      "personal-loan-calculator",
+      "amortization-schedule",
+      "student-loan-calculator",
+      "mortgage-calculator",
     ],
     updated: "2026-09-26",
   },
@@ -107,8 +115,11 @@ export const CALCULATORS: Calculator[] = [
     related: [
       "apr-vs-interest-rate",
       "how-to-compare-loan-offers",
-      "how-to-pay-off-a-loan-early",
+      "heloc-vs-home-equity-loan",
       "auto-loan-calculator",
+      "student-loan-calculator",
+      "mortgage-calculator",
+      "amortization-schedule",
     ],
     updated: "2026-09-26",
   },
@@ -122,10 +133,13 @@ export const CALCULATORS: Calculator[] = [
     tag: "Education",
     cluster: "education",
     related: [
-      "amortization-schedule",
       "how-to-pay-off-a-loan-early",
-      "personal-loan-calculator",
       "how-loan-amortization-works",
+      "apr-vs-interest-rate",
+      "amortization-schedule",
+      "personal-loan-calculator",
+      "mortgage-calculator",
+      "auto-loan-calculator",
     ],
     updated: "2026-09-26",
   },
@@ -141,8 +155,11 @@ export const CALCULATORS: Calculator[] = [
     related: [
       "how-loan-amortization-works",
       "how-to-pay-off-a-loan-early",
-      "mortgage-calculator",
       "biweekly-payments-guide",
+      "mortgage-calculator",
+      "personal-loan-calculator",
+      "auto-loan-calculator",
+      "student-loan-calculator",
     ],
     updated: "2026-09-26",
   },

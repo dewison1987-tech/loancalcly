@@ -30,9 +30,16 @@ const STATIC_PAGES: Entry[] = [
   // 计算器清单从 Five 改 Six 并补上 affordability）—— 日期必须跟着走。
   // 留着旧日期就等于这个字段又开始说假话，而 lastmod 一旦不可信，
   // Google 会连整站一起忽略。
-  { path: "", priority: 1, changeFrequency: "weekly", lastModified: "2026-09-26" },
-  { path: "/calculators", priority: 0.9, changeFrequency: "weekly", lastModified: "2026-09-26" },
-  { path: "/guides", priority: 0.8, changeFrequency: "weekly", lastModified: "2026-09-26" },
+  //
+  // ⚠️ 2026-10-03 第三处：首页、/calculators、/guides 三个页面的可见内容
+  // 都随第 4 批指南一起变了 —— 首页与 /calculators 的指南清单从 11 条变
+  // 15 条（`GUIDES.map` 直接渲染），/guides 新增 4 行问句表并把导语改成
+  // "fifteen guides"。三个页面的日期同步到 10-03。
+  // 注意：6 个计算器页的 `updated` **没有**跟着改 —— 它们的正文一字未动，
+  // 变的只是页脚内链。批量刷新 lastmod 会让这个字段重新失去信息量。
+  { path: "", priority: 1, changeFrequency: "weekly", lastModified: "2026-10-03" },
+  { path: "/calculators", priority: 0.9, changeFrequency: "weekly", lastModified: "2026-10-03" },
+  { path: "/guides", priority: 0.8, changeFrequency: "weekly", lastModified: "2026-10-03" },
   { path: "/methodology", priority: 0.6, changeFrequency: "monthly", lastModified: "2026-09-26" },
   { path: "/about", priority: 0.5, changeFrequency: "monthly", lastModified: "2026-09-26" },
   { path: "/contact", priority: 0.5, changeFrequency: "monthly", lastModified: "2026-09-25" },
