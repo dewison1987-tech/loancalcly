@@ -1,8 +1,12 @@
 import type { Metadata } from "next";
+import type { ReactNode } from "react";
 import { Geist, Geist_Mono } from "next/font/google";
 import Link from "next/link";
 import SiteAnalytics from "@/components/SiteAnalytics";
 import AdSense from "@/components/AdSense";
+import ConsentBootstrap from "@/components/ConsentBootstrap";
+import ConsentBanner from "@/components/ConsentBanner";
+import ConsentSettingsLink from "@/components/ConsentSettingsLink";
 import { AUTHOR, CONTACT_EMAIL, SITE_NAME, SITE_URL } from "@/lib/site";
 import { JsonLd } from "@/components/Prose";
 import { CALCULATORS } from "@/lib/calculators";
@@ -24,11 +28,15 @@ const ADSENSE_CLIENT = process.env.NEXT_PUBLIC_ADSENSE_CLIENT;
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "Loan Calculator — Free Monthly Payment & Amortization Calculator",
+    // `default` 是**不套 template** 的裸值，只会落到没有自己 title 的路由
+    // 上 —— 实际就是 `app/not-found.tsx`（实测产物 `_not-found.html`）。
+    // 所以这里单独写成一句 ≤60 字符的品牌兜底，不要跟首页共用长串，
+    // 否则 404 页也跟着一起被 SERP 截断。
+    default: "LoanCalcly — Free Loan & Mortgage Calculators",
     template: "%s | LoanCalcly",
   },
   description:
-    "Free loan calculators for mortgages, car loans, personal loans and student loans. Work out the monthly payment, total interest and full amortization schedule. No signup required.",
+    "Free loan calculators for mortgages, car, personal and student loans — monthly payment, total interest and full amortization schedule.",
   // ⚠️ 这里**不要**设 `openGraph.url`：根 layout 的值会被所有内页继承，
   // 导致 18 页的 og:url 全指向首页（2026-09-26 自检实测踩过）。
   // 每页的 og:url 由 `pageMetadata()` 与本页 canonical 同源生成。
@@ -72,12 +80,21 @@ const FOOTER_SITE: { href: string; label: string }[] = [
   { href: "/privacy", label: "Privacy" },
 ];
 
+/**
+ * 页脚链接组。
+ *
+ * `extra` 用来接非链接型的条目（目前只有同意设置按钮 —— 它是 `<button>`，
+ * 不是 `<Link>`，塞进 `links` 数组会渲染成错误的元素）。放进同一个 `<ul>` 里
+ * 是为了让它跟其他站点链接排在一起，而不是单独飞到页脚某个角落。
+ */
 function FooterGroup({
   heading,
   links,
+  extra,
 }: {
   heading: string;
   links: { href: string; label: string }[];
+  extra?: ReactNode;
 }) {
   return (
     <div className="min-w-0">
@@ -95,6 +112,7 @@ function FooterGroup({
             </Link>
           </li>
         ))}
+        {extra}
       </ul>
     </div>
   );
@@ -139,6 +157,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-gray-50">
+        {/* ⚠️ 必须排在所有 afterInteractive 脚本之前（含 GA4）。
+            放错位置不会报错，只是 consent 信号失效 —— 见 ConsentBootstrap 注释。 */}
+        <ConsentBootstrap />
         <JsonLd data={[ORGANIZATION_SCHEMA, WEBSITE_SCHEMA]} />
         <header className="border-b border-gray-200 bg-white">
           <nav className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-y-2 px-4 py-4">
@@ -175,7 +196,11 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
               <FooterGroup heading="Calculators" links={FOOTER_CALCULATORS} />
               <FooterGroup heading="Guides" links={FOOTER_GUIDES} />
-              <FooterGroup heading="Site" links={FOOTER_SITE} />
+              <FooterGroup
+                heading="Site"
+                links={FOOTER_SITE}
+                extra={<ConsentSettingsLink />}
+              />
             </div>
 
             <div className="mt-8 border-t border-gray-100 pt-6">
@@ -228,6 +253,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
 
         <SiteAnalytics />
         <AdSense />
+        <ConsentBanner />
       </body>
     </html>
   );

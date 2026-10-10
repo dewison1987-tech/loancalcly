@@ -17,9 +17,9 @@ import {
 
 export const metadata: Metadata = pageMetadata({
   path: "/student-loan-calculator",
-  title: "Student Loan Calculator — Payment, Interest and Payoff Date",
+  title: "Student Loan Calculator — Payment and Payoff",
   description:
-    "Calculate the monthly payment and total interest on a student loan, then see what a small extra payment each month does to the payoff date and the interest bill.",
+    "Calculate the monthly payment and total interest on a student loan, then see what a small extra payment does to the payoff date.",
 });
 
 const REVIEWED = "September 20, 2026";

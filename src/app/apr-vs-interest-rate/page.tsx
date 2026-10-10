@@ -18,9 +18,9 @@ import {
 
 export const metadata: Metadata = pageMetadata({
   path: "/apr-vs-interest-rate",
-  title: "APR vs Interest Rate: What Is the Difference, and Which Should You Compare?",
+  title: "APR vs Interest Rate: What's the Difference?",
   description:
-    "The interest rate prices the money; APR prices the loan. See what APR includes, what it leaves out, a worked three-lender example, and the situations where comparing APR misleads you.",
+    "The interest rate prices the money; APR prices the loan. See what APR includes, what it leaves out, and where comparing it misleads you.",
   type: "article",
 });
 

@@ -17,7 +17,7 @@ import {
 
 export const metadata: Metadata = pageMetadata({
   path: "/personal-loan-calculator",
-  title: "Personal Loan Calculator — Payment, Interest and Real Cost",
+  title: "Personal Loan Calculator — Payment and APR",
   description:
     "Work out the monthly payment and total interest on an unsecured personal loan, and see what an origination fee does to the real annual cost before you sign.",
 });

@@ -18,7 +18,7 @@ export const metadata: Metadata = pageMetadata({
   path: "/debt-to-income-ratio",
   title: "Debt-to-Income Ratio: How Lenders Read It",
   description:
-    "An $8,000 income carrying $2,156.58 of housing and $675 of other debt sits at 35.4% back-end DTI. How the ratio is built, what counts towards it, and what the ceiling buys.",
+    "An $8,000 income carrying $2,156.58 of housing and $675 of other debt sits at 35.4% back-end DTI. What counts towards it, and why it decides the loan.",
   type: "article",
 });
 

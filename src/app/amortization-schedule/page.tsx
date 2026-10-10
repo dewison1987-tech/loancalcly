@@ -18,9 +18,9 @@ import {
 
 export const metadata: Metadata = pageMetadata({
   path: "/amortization-schedule",
-  title: "Amortization Schedule Calculator — Monthly and Yearly Breakdown",
+  title: "Amortization Schedule Calculator — Year by Year",
   description:
-    "Generate a full amortization schedule for any fixed-rate loan: month by month, year by year, and with extra payments included. See exactly how much interest each extra dollar removes.",
+    "Generate a full amortization schedule for any fixed-rate loan: month by month, year by year, with extra payments included to show the interest they remove.",
 });
 
 const REVIEWED = "September 20, 2026";

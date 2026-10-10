@@ -6,9 +6,12 @@ import { pageMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = pageMetadata({
   path: "/methodology",
-  title: "How We Verify the Numbers — LoanCalcly Methodology",
+  // 原为「How We Verify the Numbers — LoanCalcly Methodology」：套上
+  // 「 | LoanCalcly」后缀后是 63 字符，SERP 会截断，而且标题里
+  // LoanCalcly 出现了两次。
+  title: "How We Verify the Numbers — Our Methodology",
   description:
-    "Every figure on LoanCalcly comes from one published formula and is recomputed with a second, independent implementation before publication. The process, the standards, and what these figures are not.",
+    "Every figure on LoanCalcly comes from one published formula and is recomputed with a second, independent implementation before publication.",
 });
 
 const LAST_UPDATED = "September 26, 2026";

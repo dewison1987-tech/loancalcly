@@ -17,7 +17,7 @@ export const metadata: Metadata = pageMetadata({
   path: "/rent-vs-buy",
   title: "Rent vs Buy: the Break-Even Year",
   description:
-    "On a $420,000 home against $2,300 rent, buying is $38,538 more expensive in year one and does not break even until year 11. Full model, plus how the answer moves with appreciation.",
+    "On a $420,000 home against $2,300 rent, buying is $38,538 more expensive in year one and does not break even until year 11.",
   type: "article",
 });
 

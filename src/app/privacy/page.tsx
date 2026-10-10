@@ -11,7 +11,7 @@ export const metadata: Metadata = pageMetadata({
     "How LoanCalcly handles data: what we collect, how cookies and third-party advertising work, and how you can opt out of personalised advertising.",
 });
 
-const LAST_UPDATED = "September 25, 2026";
+const LAST_UPDATED = "October 10, 2026";
 
 export default function PrivacyPage() {
   return (
@@ -73,6 +73,22 @@ export default function PrivacyPage() {
           You can block or delete cookies at any time through your browser
           settings. Blocking cookies will not stop the calculator from working
           — the calculation is client-side and does not depend on them.
+        </p>
+        <p>
+          <strong>Your cookie choice.</strong> On your first visit we ask
+          whether to allow the non-essential categories. Visitors in the
+          European Economic Area, the United Kingdom and Switzerland start with
+          analytics and advertising switched <em>off</em> until they say
+          otherwise; everywhere else they start on, and you can opt out at any
+          time. Your answer applies across the whole site, not just the page you
+          gave it on.
+        </p>
+        <p>
+          To change or withdraw that answer, open{" "}
+          <strong>Cookie preferences</strong> in the footer of any page. It
+          reopens the same panel with your current settings, and switching a
+          category off takes effect immediately. Rejecting costs you nothing —
+          every calculator here works without cookies.
         </p>
       </Section>
 
@@ -176,6 +192,13 @@ export default function PrivacyPage() {
           analytics cookies) and legitimate interests (for keeping the site
           secure and working). To exercise any of these rights, email{" "}
           <Ext href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</Ext>.
+        </p>
+        <p>
+          To withdraw cookie consent directly, open{" "}
+          <strong>Cookie preferences</strong> in the footer and switch the
+          categories off — you do not need to email us to do it. Withdrawal
+          takes effect immediately on that device and does not affect the
+          lawfulness of processing carried out before you withdrew.
         </p>
       </Section>
 

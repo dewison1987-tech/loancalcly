@@ -16,9 +16,9 @@ import {
 
 export const metadata: Metadata = pageMetadata({
   path: "/mortgage-calculator",
-  title: "Mortgage Calculator — Payment with Tax, Insurance and PMI",
+  title: "Mortgage Calculator with Tax, Insurance, PMI",
   description:
-    "Work out your monthly mortgage payment including property tax, homeowners insurance, HOA fees and mortgage insurance. Full PITI breakdown plus a month-by-month amortization schedule.",
+    "Work out your monthly mortgage payment including property tax, homeowners insurance, HOA fees and PMI, with a full month-by-month breakdown.",
 });
 
 const REVIEWED = "September 20, 2026";

@@ -16,9 +16,9 @@ import {
 
 export const metadata: Metadata = pageMetadata({
   path: "/home-affordability-calculator",
-  title: "Home Affordability Calculator — What Price Can You Carry?",
+  title: "Home Affordability Calculator — How Much House?",
   description:
-    "Work the mortgage question backwards: from your income, monthly debts and down payment to the home price you can actually carry, using the debt-to-income limits lenders apply.",
+    "Work the mortgage question backwards: from your income, debts and down payment to the home price you can actually carry, using lenders' DTI limits.",
 });
 
 const REVIEWED = "September 26, 2026";

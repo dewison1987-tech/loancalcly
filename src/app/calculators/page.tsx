@@ -8,9 +8,9 @@ import { pageMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = pageMetadata({
   path: "/calculators",
-  title: "Free Loan Calculators — Mortgage, Auto, Personal and Student",
+  title: "Loan Calculators — Mortgage, Auto, Personal",
   description:
-    "Six free loan calculators: mortgage with tax and insurance, home affordability worked backwards from your income, auto loans with trade-in and sales tax, personal loans with fee arithmetic, student loans and full amortization schedules.",
+    "Six free loan calculators: mortgage with tax and insurance, home affordability from your income, auto, personal and student loans, and amortization schedules.",
 });
 
 const REVIEWED = "September 20, 2026";

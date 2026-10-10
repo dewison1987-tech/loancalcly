@@ -18,9 +18,9 @@ import {
 
 export const metadata: Metadata = pageMetadata({
   path: "/refinance-break-even-point",
-  title: "Refinance Break-Even Point: How Long Until a Lower Rate Pays Off",
+  title: "Refinance Break-Even Point: When It Pays Off",
   description:
-    "Work out the month a refinance pays for itself: closing costs divided by monthly saving, with a worked four-option example, the term-extension trap, and the cases where refinancing costs you money.",
+    "Work out the month a refinance pays for itself: closing costs divided by monthly saving, with a worked example and the term-extension trap.",
   type: "article",
 });
 

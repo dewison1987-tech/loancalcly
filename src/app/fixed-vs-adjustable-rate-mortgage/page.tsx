@@ -18,7 +18,7 @@ export const metadata: Metadata = pageMetadata({
   path: "/fixed-vs-adjustable-rate-mortgage",
   title: "Fixed vs Adjustable-Rate Mortgage",
   description:
-    "Five years at 6.00% saves $6,243.60 against a 6.50% fixed loan. If the rate resets to 7.50%, the higher payment erases that in 35 months and costs $47,128 overall.",
+    "Five years at 6.00% saves $6,243.60 against a 6.50% fixed loan. If it resets to 7.50%, the saving is erased in 35 months and costs $47,128 overall.",
   type: "article",
 });
 

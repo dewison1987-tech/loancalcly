@@ -15,9 +15,9 @@ import {
 
 export const metadata: Metadata = pageMetadata({
   path: "/how-loan-amortization-works",
-  title: "How Loan Amortization Works (With a Month-by-Month Example)",
+  title: "How Loan Amortization Works (Month by Month)",
   description:
-    "A plain-English explanation of loan amortization: the formula, a worked month-by-month example, when principal finally overtakes interest, and why extra early payments save so much.",
+    "A plain-English explanation of loan amortization: the formula, a worked month-by-month example, and when principal finally overtakes interest.",
   type: "article",
 });
 

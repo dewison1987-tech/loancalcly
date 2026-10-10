@@ -7,9 +7,9 @@ import { pageMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = pageMetadata({
   path: "/guides",
-  title: "Loan Guides — Plain-English Explainers on Borrowing Costs",
+  title: "Loan Guides — Plain-English Borrowing Basics",
   description:
-    "Plain-English guides to how loans work: amortization, APR versus interest rate, down payments, escrow, PMI, closing costs, debt-to-income, refinancing, fixed versus adjustable, FHA versus conventional, rent versus buy and paying a loan off early.",
+    "Plain-English guides to how loans actually work: amortization, APR versus interest rate, down payments, escrow, PMI, refinancing and closing costs.",
 });
 
 const REVIEWED = "October 9, 2026";

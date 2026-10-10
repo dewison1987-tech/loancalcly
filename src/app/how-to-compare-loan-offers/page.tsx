@@ -18,9 +18,9 @@ import {
 
 export const metadata: Metadata = pageMetadata({
   path: "/how-to-compare-loan-offers",
-  title: "How to Compare Loan Offers: Rate, APR, Points and Fees",
+  title: "How to Compare Loan Offers: Rate, APR, Fees",
   description:
-    "A practical method for comparing loan offers: the three numbers that matter, why the headline rate misleads, worked break-even maths for discount points, and the questions to ask every lender.",
+    "A practical method for comparing loan offers: the three numbers that matter, why the headline rate misleads, and the questions to ask every lender.",
   type: "article",
 });
 

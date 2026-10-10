@@ -7,11 +7,14 @@ import { CALCULATORS } from "@/lib/calculators";
 import { pageMetadata } from "@/lib/seo";
 import { AuthorLink } from "@/components/Prose";
 
+// ⚠️ 首页是**唯一不套用** `%s | LoanCalcly` 模板的路由（实测：layout 的
+// title.template 只作用于子段，根 index 原样输出），所以这里可以直接用满
+// 60 字符预算，不用为品牌后缀留 13 个字符。其余页面 base 必须 ≤ 47。
 export const metadata: Metadata = pageMetadata({
   path: "/",
-  title: "Loan Calculator — Free Monthly Payment & Amortization Calculator",
+  title: "Loan Calculator — Monthly Payment & Amortization",
   description:
-    "Calculate your monthly loan payment, total interest and full amortization schedule. Free, instant and accurate for mortgages, car loans, personal loans and more.",
+    "Calculate your monthly loan payment, total interest and full amortization schedule — free and instant for mortgages, car and personal loans.",
 });
 
 const REVIEWED = "September 20, 2026";

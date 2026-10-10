@@ -18,7 +18,7 @@ export const metadata: Metadata = pageMetadata({
   path: "/15-vs-30-year-mortgage",
   title: "15-Year vs 30-Year Mortgage: The Real Trade-Off",
   description:
-    "The same $300,000 loan on both terms: $212,235 less interest against $717.12 a month more, when principal overtakes interest on each, and the affordability test that decides it.",
+    "The same $300,000 loan on both terms: $212,235 less interest against $717.12 a month more, and when principal overtakes interest on each.",
   type: "article",
 });
 

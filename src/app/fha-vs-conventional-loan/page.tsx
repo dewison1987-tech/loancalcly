@@ -18,7 +18,7 @@ export const metadata: Metadata = pageMetadata({
   path: "/fha-vs-conventional-loan",
   title: "FHA vs Conventional Loan",
   description:
-    "FHA's 3.5% down payment saves $5,250 at closing and raises the monthly payment by $72.95. Same-rate comparison on a $350,000 home, including where the gap comes from.",
+    "FHA's 3.5% down payment saves $5,250 at closing and raises the monthly payment by $72.95. Same-rate comparison on a $350,000 home.",
   type: "article",
 });
 

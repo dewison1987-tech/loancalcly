@@ -17,9 +17,9 @@ import {
 
 export const metadata: Metadata = pageMetadata({
   path: "/biweekly-payments-guide",
-  title: "Biweekly Payments: What They Really Save (and the Fees to Avoid)",
+  title: "Biweekly Payments: What They Really Save",
   description:
-    "Paying half your mortgage every two weeks is not a trick — it is thirteen full payments a year instead of twelve. See the exact saving on a worked loan, the DIY alternative, and the pitfalls that eat the benefit.",
+    "Paying half your mortgage every two weeks is not a trick — it is thirteen payments a year instead of twelve. See the exact saving on a worked loan.",
   type: "article",
 });
 

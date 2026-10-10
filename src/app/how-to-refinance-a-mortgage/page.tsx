@@ -18,7 +18,7 @@ export const metadata: Metadata = pageMetadata({
   path: "/how-to-refinance-a-mortgage",
   title: "How to Refinance a Mortgage",
   description:
-    "After 10 years on a 6.50% loan, refinancing the $254,328 balance at 6.00% cuts the payment by $371.38 and adds $93,849 of interest. Why the clock matters more than the rate.",
+    "After 10 years on a 6.50% loan, refinancing the $254,328 balance at 6.00% cuts the payment by $371.38 but adds $93,849 of interest.",
   type: "article",
 });
 

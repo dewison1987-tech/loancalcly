@@ -50,13 +50,34 @@ const STATIC_PAGES: Entry[] = [
   // 首页与 /calculators 的 REVIEWED 停在 September 20 —— 变的是自动派生的
   // 清单，不是这两页自己的文字，所以不算一次「复阅」。/guides 的导语与
   // 表格确实重写过，REVIEWED 才跟着走到 10-09。
+  //
+  // ⚠️ 2026-10-10 第五处（同意横幅 CMP）：**只有 /privacy 一个页面动日期。**
+  //   同意横幅挂在全站 34 个页面上，页脚也多了一个 "Cookie preferences" 按钮 ——
+  //   但它们都**不是页面内容**：
+  //     - 横幅在服务端渲染时带 `hidden`（是否显示取决于 localStorage），
+  //       对爬虫而言它不存在，且 fixed 定位不进文档流。
+  //     - 页脚变化按既定判据不计入（「不看页脚，读者在这一页看到的东西变了吗」）。
+  //   只有 /privacy 的第 2、6 节真的新增了「如何更改/撤回同意」的段落，
+  //   而这两段正是为了兑现原第 3、6 节「可随时撤回」那句承诺 —— 那才算内容变更。
+  //   给全站刷一遍日期就是又一次把 lastmod 变成噪声，前面特意去掉
+  //   `new Date()` 的收益会全部作废。
+  //
+  // ⚠️ 2026-10-10 同日：压短了 16 个页面的 `<title>`，连同 layout 的
+  //   `title.default`（只有 404 页会用到），并把 21 个页面的
+  //   `<meta description>` 与 layout 的兜底 description 收到 160 字符内
+  //   （SERP 约在 60 / 160 字符处截断，超出部分读者看不到）。
+  //   **这些一律不动 lastmod**。理由：这个字段跟踪的是「页面内容有没有实质
+  //   变化」，而标题与摘要是 SERP 呈现层的调整，没有新增任何读者能读到的东西；
+  //   20 多个页面在同一天因为同一次批量改动全部变成同一天，正好就是我们
+  //   前面花力气消除的那种噪声形态。代价最多是标题更新晚一次自然抓取，
+  //   远小于 lastmod 整站失信的代价。
   { path: "", priority: 1, changeFrequency: "weekly", lastModified: "2026-10-09" },
   { path: "/calculators", priority: 0.9, changeFrequency: "weekly", lastModified: "2026-10-09" },
   { path: "/guides", priority: 0.8, changeFrequency: "weekly", lastModified: "2026-10-09" },
   { path: "/methodology", priority: 0.6, changeFrequency: "monthly", lastModified: "2026-09-26" },
   { path: "/about", priority: 0.5, changeFrequency: "monthly", lastModified: "2026-09-26" },
   { path: "/contact", priority: 0.5, changeFrequency: "monthly", lastModified: "2026-09-25" },
-  { path: "/privacy", priority: 0.3, changeFrequency: "monthly", lastModified: "2026-09-25" },
+  { path: "/privacy", priority: 0.3, changeFrequency: "monthly", lastModified: "2026-10-10" },
   { path: "/terms", priority: 0.3, changeFrequency: "monthly", lastModified: "2026-09-25" },
   { path: "/disclaimer", priority: 0.3, changeFrequency: "monthly", lastModified: "2026-09-25" },
 ];

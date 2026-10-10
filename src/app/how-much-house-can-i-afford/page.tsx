@@ -16,9 +16,9 @@ import {
 
 export const metadata: Metadata = pageMetadata({
   path: "/how-much-house-can-i-afford",
-  title: "How Much House Can I Afford? Three Different Answers",
+  title: "How Much House Can I Afford? Three Answers",
   description:
-    "The price a lender approves, the price a ratio supports and the price you can actually carry are three different numbers. How each is calculated, and which one to build your budget on.",
+    "The price a lender approves, the price a ratio supports and the price you can actually carry are three different numbers. Which should you budget on?",
   type: "article",
 });
 
