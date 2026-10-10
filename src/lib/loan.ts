@@ -1381,6 +1381,553 @@ export function armMortgage(input: ArmInput): ArmResult {
   };
 }
 
+/* ── 预资格认定 vs 预批：同一份收入，两种口径 ──────────────────── */
+
+export type ApprovalInput = {
+  annualIncome: number;
+  monthlyDebts: number;
+  downPayment: number;
+  annualRate: number;
+  years: number;
+  annualTaxRatePct: number;
+  annualInsurance: number;
+  monthlyHoa: number;
+  annualPmiRatePct: number;
+  maxBackEndDtiPct: number;
+  maxFrontEndDtiPct: number;
+};
+
+export type PreapprovalGapInput = ApprovalInput & {
+  /** 申报收入里奖金 / 佣金 / 加班这类可变收入的比重 % */
+  variableIncomeSharePct: number;
+  /** 承保端最终认可的可变收入比重 % */
+  variableIncomeAllowedPct: number;
+};
+
+export type PreapprovalGapResult = {
+  statedAnnualIncome: number;
+  variableIncome: number;
+  recognizedVariableIncome: number;
+  /** 承保端会用来算 DTI 的那份收入 */
+  underwrittenAnnualIncome: number;
+  incomeShortfall: number;
+  incomeShortfallPct: number;
+  /** 按申报收入算出的可承受房价 */
+  priceAtStated: number;
+  /** 按承保收入算出的可承受房价 */
+  priceAtUnderwritten: number;
+  priceGap: number;
+  loanAtStated: number;
+  loanAtUnderwritten: number;
+  loanGap: number;
+  housingAtStated: number;
+  housingAtUnderwritten: number;
+  monthlyGap: number;
+  /** 承保口径下首付是否刚好卡在 LTV 80% 那条线上 */
+  cappedByLtvAtUnderwritten: boolean;
+};
+
+/**
+ * 预资格认定（prequalification）与预批（preapproval）之间的差额。
+ *
+ * 两者用的 DTI 规则是同一套，差别只在**「收入」这两个字指什么**：
+ * 预资格认定按你自己报的数算，预批按承保端认可的数算。工资条上的
+ * 奖金 / 佣金 / 加班不是自动全额计入的 —— 这一段差额会原样传到
+ * 可承受房价上，而且是**放大**着传过去（借贷能力 = 收入 ÷ 月供系数）。
+ *
+ * 所以这个函数只是把 `affordableHomePrice` 用两份收入各跑一遍再相减，
+ * 不引入任何新的算术。两份收入的口径差是显式入参，不内置任何
+ * 「银行一般认多少」的经验值 —— 那个因贷款机构和收入类型而异。
+ */
+export function preapprovalGap(
+  input: PreapprovalGapInput
+): PreapprovalGapResult {
+  const { variableIncomeSharePct, variableIncomeAllowedPct, ...base } = input;
+
+  const statedAnnualIncome = base.annualIncome;
+  const variableIncome = statedAnnualIncome * (variableIncomeSharePct / 100);
+  const recognizedVariableIncome =
+    variableIncome * (variableIncomeAllowedPct / 100);
+  const underwrittenAnnualIncome =
+    statedAnnualIncome - variableIncome + recognizedVariableIncome;
+
+  const atStated = affordableHomePrice({
+    ...base,
+    annualIncome: statedAnnualIncome,
+  });
+  const atUnderwritten = affordableHomePrice({
+    ...base,
+    annualIncome: underwrittenAnnualIncome,
+  });
+
+  return {
+    statedAnnualIncome,
+    variableIncome,
+    recognizedVariableIncome,
+    underwrittenAnnualIncome,
+    incomeShortfall: statedAnnualIncome - underwrittenAnnualIncome,
+    incomeShortfallPct:
+      statedAnnualIncome > 0
+        ? ((statedAnnualIncome - underwrittenAnnualIncome) /
+            statedAnnualIncome) *
+          100
+        : 0,
+    priceAtStated: atStated.maxHomePrice,
+    priceAtUnderwritten: atUnderwritten.maxHomePrice,
+    priceGap: atStated.maxHomePrice - atUnderwritten.maxHomePrice,
+    loanAtStated: atStated.loanAmount,
+    loanAtUnderwritten: atUnderwritten.loanAmount,
+    loanGap: atStated.loanAmount - atUnderwritten.loanAmount,
+    housingAtStated: atStated.monthlyHousing,
+    housingAtUnderwritten: atUnderwritten.monthlyHousing,
+    monthlyGap: atStated.monthlyHousing - atUnderwritten.monthlyHousing,
+    cappedByLtvAtUnderwritten: atUnderwritten.cappedByLtv,
+  };
+}
+
+export type ApprovalRateRow = {
+  ratePct: number;
+  maxHomePrice: number;
+  loanAmount: number;
+  monthlyHousing: number;
+  hasPmi: boolean;
+};
+
+/**
+ * 同一份承保收入、一组利率下分别能买多贵的房。
+ *
+ * 预资格认定书上那个金额是**按当时的利率**算出来的，而利率不是
+ * 锁定的 —— 从预资格认定到签约之间利率走高，额度会自己缩水。
+ * 这个表就是用来回答「利率动多少、额度掉多少」。
+ */
+export function approvalRateSweep(
+  input: PreapprovalGapInput,
+  ratesPct: number[]
+): ApprovalRateRow[] {
+  const { variableIncomeSharePct, variableIncomeAllowedPct, ...base } = input;
+  const variableIncome = base.annualIncome * (variableIncomeSharePct / 100);
+  const recognized = variableIncome * (variableIncomeAllowedPct / 100);
+  const income = base.annualIncome - variableIncome + recognized;
+
+  return ratesPct.map((ratePct) => {
+    const r = affordableHomePrice({
+      ...base,
+      annualIncome: income,
+      annualRate: ratePct,
+    });
+    return {
+      ratePct,
+      maxHomePrice: r.maxHomePrice,
+      loanAmount: r.loanAmount,
+      monthlyHousing: r.monthlyHousing,
+      hasPmi: r.hasPmi,
+    };
+  });
+}
+
+/* ── 评估价低于合同价：缺口有多大、谁来补 ──────────────────────── */
+
+export type LowAppraisalInput = {
+  contractPrice: number;
+  appraisedValue: number;
+  /** 计划首付现金 */
+  downPayment: number;
+  annualRate: number;
+  years: number;
+  annualPmiRatePct: number;
+  /** 定金 */
+  earnestMoney: number;
+  /** 已经花掉的检查 / 评估等沉没成本 */
+  sunkCosts: number;
+};
+
+export type AppraisalPath = {
+  /** 这条路要拿出的现金 */
+  cashRequired: number;
+  loanAmount: number;
+  /** 贷款额 ÷ 评估价（放款方真正看的 LTV，两条路都保持不变） */
+  ltvPct: number;
+  /** 贷款额 ÷ 合同价 */
+  ltvVsContractPct: number;
+  monthlyPrincipalInterest: number;
+  monthlyPmi: number;
+  monthlyTotal: number;
+  /** 相对最初计划多掏的现金（正数 = 要多掏） */
+  extraCashVsPlan: number;
+};
+
+export type LowAppraisalResult = {
+  appraisalGap: number;
+  appraisalGapPct: number;
+  plannedLoanAmount: number;
+  plannedLtvPct: number;
+  maxLoanByAppraisal: number;
+  /** A：按合同价成交，缺口自己用现金补 */
+  payGap: AppraisalPath;
+  /** B：卖方把价格降到评估价 */
+  renegotiate: AppraisalPath;
+  /** 缺口全自己补时要多掏的现金 = LTV × 评估缺口 */
+  cashGap: number;
+  gapVsDownPaymentPct: number;
+  /** 走人：有评估条款则只损失已花费用 */
+  walkAwayCost: number;
+  /** 走人：没有评估条款，定金也拿不回来 */
+  walkAwayCostNoContingency: number;
+  /** 贷款变小之后每月比原计划少付多少 */
+  monthlyRelief: number;
+};
+
+/**
+ * 评估价低于合同价时的三条路。
+ *
+ * 关键机制只有一句：**放款方按「合同价与评估价里较低的那个」计算 LTV**。
+ * 于是 90% LTV 的贷款在评估价上算只值 90% × 评估价，合同价与评估价
+ * 之间的那段缺口，贷款一分钱都不覆盖。把两式相减可以得到一个很好用的闭式：
+ *
+ *   **现金缺口 = LTV × 评估缺口**
+ *
+ * 也就是说，LTV 越高、缺口越全部落到你自己身上 —— 首付比例越高，
+ * 这个缺口反而越小。这一点和「首付越多越安全」的直觉是一致的，
+ * 但和「评估低了就是首付不够」的解释完全不是一回事。
+ *
+ * 三条路各自算，不做推荐：走不走取决于合同里有没有评估条款、
+ * 你还剩多少现金储备、以及这套房对你值多少。这里只把每一条路的
+ * 现金与月供摆出来。
+ */
+export function lowAppraisal(input: LowAppraisalInput): LowAppraisalResult {
+  const {
+    contractPrice,
+    appraisedValue,
+    downPayment,
+    annualRate,
+    years,
+    annualPmiRatePct,
+    earnestMoney,
+    sunkCosts,
+  } = input;
+
+  const months = Math.max(1, Math.round(years * 12));
+  const plannedLoanAmount = Math.max(0, contractPrice - downPayment);
+  const plannedLtvPct =
+    contractPrice > 0 ? (plannedLoanAmount / contractPrice) * 100 : 0;
+  const maxLoanByAppraisal = (plannedLtvPct / 100) * appraisedValue;
+  const appraisalGap = Math.max(0, contractPrice - appraisedValue);
+
+  const mk = (price: number, loanAmount: number): AppraisalPath => {
+    const run = runAmortization(loanAmount, annualRate, months);
+    const monthlyPmi =
+      annualPmiRatePct > 0
+        ? monthlyMortgageInsurance(loanAmount, annualPmiRatePct)
+        : 0;
+    const cashRequired = Math.max(0, price - loanAmount);
+    return {
+      cashRequired,
+      loanAmount,
+      ltvPct:
+        appraisedValue > 0 ? (loanAmount / appraisedValue) * 100 : 0,
+      ltvVsContractPct:
+        contractPrice > 0 ? (loanAmount / contractPrice) * 100 : 0,
+      monthlyPrincipalInterest: run.monthlyPayment,
+      monthlyPmi,
+      monthlyTotal: run.monthlyPayment + monthlyPmi,
+      extraCashVsPlan: cashRequired - downPayment,
+    };
+  };
+
+  const payGap = mk(contractPrice, maxLoanByAppraisal);
+  const renegotiate = mk(appraisedValue, maxLoanByAppraisal);
+
+  const plannedRun = runAmortization(plannedLoanAmount, annualRate, months);
+  const plannedPmi =
+    annualPmiRatePct > 0
+      ? monthlyMortgageInsurance(plannedLoanAmount, annualPmiRatePct)
+      : 0;
+
+  return {
+    appraisalGap,
+    appraisalGapPct:
+      contractPrice > 0 ? (appraisalGap / contractPrice) * 100 : 0,
+    plannedLoanAmount,
+    plannedLtvPct,
+    maxLoanByAppraisal,
+    payGap,
+    renegotiate,
+    cashGap: payGap.extraCashVsPlan,
+    gapVsDownPaymentPct:
+      downPayment > 0 ? (payGap.extraCashVsPlan / downPayment) * 100 : 0,
+    walkAwayCost: sunkCosts,
+    walkAwayCostNoContingency: sunkCosts + earnestMoney,
+    monthlyRelief:
+      plannedRun.monthlyPayment + plannedPmi - payGap.monthlyTotal,
+  };
+}
+
+/* ── 我到底有多少房屋净值：账面、可借、能拿到手的三个数 ────────── */
+
+export type HomeEquityInput = {
+  homeValue: number;
+  mortgageBalance: number;
+  /** 第二顺位置押的合并 LTV（CLTV）上限 % */
+  maxCltvPct: number;
+  /** 卖房交易成本，占成交价 % */
+  sellingCostPct: number;
+  /** 取现的开办成本，占新借款 % */
+  borrowingCostPct: number;
+};
+
+export type HomeEquityResult = {
+  /** 账面净值 = 房价 − 贷款余额 */
+  equity: number;
+  equityPct: number;
+  /** 贷款余额 ÷ 房价 */
+  ltvPct: number;
+  /** CLTV 上限对应的总债务天花板 */
+  debtCeiling: number;
+  /** CLTV 上限之下还能再借多少 */
+  borrowableByCltv: number;
+  /** 可借额度占账面净值的比重 % */
+  borrowableSharePct: number;
+  borrowingCost: number;
+  /** 借出来并扣掉开办成本后真正到手的钱 */
+  netCashFromBorrowing: number;
+  sellingCosts: number;
+  /** 卖房并还清贷款后到手的现金 */
+  netProceedsIfSold: number;
+  /** 卖房到手占账面净值的比重 % */
+  netProceedsSharePct: number;
+  /** 账面净值里被 CLTV 上限锁住、借不出来的部分 */
+  lockedByCltv: number;
+  /** 账面净值里被卖房交易成本吃掉的部分 */
+  eatenBySellingCosts: number;
+};
+
+/**
+ * 三个「净值」口径。
+ *
+ * 「我有多少净值」这句话有三种完全不同的答案，而它们之间的差距
+ * 不是误差，是结构性的：
+ *   ① 账面净值 = 房价 − 余额                    ← 新闻里说的那个
+ *   ② 能借出来的 = CLTV 上限 × 房价 − 余额      ← 净值类产品的上限
+ *   ③ 卖房到手的 = 房价 ×（1 − 交易成本）− 余额  ← 实际能落袋的
+ *
+ * ② 与 ① 的差距来自「押在前面的余额不参与计算」：房价必须先把
+ * 现有贷款还掉，剩下的部分才轮到 80% 上限。所以房价一跌，可借额度
+ * 掉得比净值快得多 —— 见 `homeEquityStress`。这一条是整页的反直觉核心。
+ */
+export function homeEquity(input: HomeEquityInput): HomeEquityResult {
+  const {
+    homeValue,
+    mortgageBalance,
+    maxCltvPct,
+    sellingCostPct,
+    borrowingCostPct,
+  } = input;
+
+  const equity = homeValue - mortgageBalance;
+  const debtCeiling = (homeValue * maxCltvPct) / 100;
+  const borrowableByCltv = Math.max(0, debtCeiling - mortgageBalance);
+  const borrowingCost = (borrowableByCltv * borrowingCostPct) / 100;
+  const sellingCosts = (homeValue * sellingCostPct) / 100;
+  const netProceedsIfSold = homeValue - sellingCosts - mortgageBalance;
+
+  return {
+    equity,
+    equityPct: homeValue > 0 ? (equity / homeValue) * 100 : 0,
+    ltvPct: homeValue > 0 ? (mortgageBalance / homeValue) * 100 : 0,
+    debtCeiling,
+    borrowableByCltv,
+    borrowableSharePct:
+      equity > 0 ? (borrowableByCltv / equity) * 100 : 0,
+    borrowingCost,
+    netCashFromBorrowing: borrowableByCltv - borrowingCost,
+    sellingCosts,
+    netProceedsIfSold,
+    netProceedsSharePct:
+      equity > 0 ? (netProceedsIfSold / equity) * 100 : 0,
+    lockedByCltv: Math.max(0, equity - borrowableByCltv),
+    eatenBySellingCosts: Math.max(0, equity - netProceedsIfSold),
+  };
+}
+
+export type HomeEquityStressRow = {
+  valueChangePct: number;
+  homeValue: number;
+  equity: number;
+  /** 变化后的贷款余额 ÷ 房价 */
+  ltvPct: number;
+  borrowableByCltv: number;
+  /** 可借额度相对基准值的变化 % */
+  borrowableChangePct: number;
+  /** 账面净值相对基准值的变化 % */
+  equityChangePct: number;
+};
+
+/**
+ * 房价变动对三个口径的传导。
+ *
+ * 余额不动、房价变，于是净值按 1:1 变动，而**可借额度按杠杆倍数变动**：
+ * 房价跌掉的每一块钱，都要先从「80% 天花板」里扣掉，再和不变的余额相减。
+ * 结果就是可借额度的跌幅远大于净值的跌幅 —— 跌到某个点会直接归零，
+ * 而那时账面净值还是正的。这就是「房价跌了，净值贷额度先消失」的算术来源。
+ */
+export function homeEquityStress(
+  input: HomeEquityInput,
+  valueChangesPct: number[]
+): HomeEquityStressRow[] {
+  const base = homeEquity(input);
+  return valueChangesPct.map((valueChangePct) => {
+    const homeValue = input.homeValue * (1 + valueChangePct / 100);
+    const r = homeEquity({ ...input, homeValue });
+    return {
+      valueChangePct,
+      homeValue,
+      equity: r.equity,
+      ltvPct: r.ltvPct,
+      borrowableByCltv: r.borrowableByCltv,
+      borrowableChangePct:
+        base.borrowableByCltv > 0
+          ? ((r.borrowableByCltv - base.borrowableByCltv) /
+              base.borrowableByCltv) *
+            100
+          : 0,
+      equityChangePct:
+        base.equity > 0 ? ((r.equity - base.equity) / base.equity) * 100 : 0,
+    };
+  });
+}
+
+/* ── 债务合并：低利率但更长期，到底哪个贵 ──────────────────────── */
+
+export type DebtConsolidationInput = {
+  /** 要合并掉的债务总额 */
+  debtAmount: number;
+  /** 无抵押方案（个人贷）利率 % */
+  unsecuredRatePct: number;
+  unsecuredMonths: number;
+  /** 手续费，占贷款额 %，从放款额里扣 */
+  unsecuredFeePct: number;
+  /** 有抵押方案（房屋净值贷）利率 % */
+  securedRatePct: number;
+  /** 有抵押方案的一次性成本（评估、登记等） */
+  securedClosingCost: number;
+  /** 有抵押方案的候选期限（月） */
+  securedTermMonths: number[];
+  /** 月收入，用于看月供负担 */
+  monthlyIncome: number;
+};
+
+export type ConsolidationRoute = {
+  label: string;
+  months: number;
+  ratePct: number;
+  /** 你实际背上的贷款本金 */
+  principal: number;
+  /** 到手、可用来还清旧债的现金 */
+  cashReceived: number;
+  /** 为了净到手这么多而多借出来的部分 = 本金 − 到手现金 */
+  feeAmount: number;
+  monthlyPayment: number;
+  totalPaid: number;
+  totalInterest: number;
+  /** 真正的代价 = 全部还款 − 到手现金 + 一次性成本 */
+  totalCost: number;
+  /** 月供占月收入 % */
+  paymentSharePct: number;
+};
+
+export type DebtConsolidationResult = {
+  debtAmount: number;
+  unsecured: ConsolidationRoute;
+  secured: ConsolidationRoute[];
+  cheapestOverall: ConsolidationRoute;
+  /** 有抵押路线里第一个「总代价超过无抵押」的期限；没有则为 null */
+  securedCostlierFromMonths: number | null;
+};
+
+/**
+ * 同一笔债务，两条路：无抵押的个人贷 vs 用房子做抵押的净值贷。
+ *
+ * 这里要防的错误结论是「利率低就等于便宜」。两条路的期限通常不一样 ——
+ * 净值贷可以拉到 10 年甚至 15 年，月供能砍掉一半，而**总代价反而更高**。
+ * 利率降 3.5 个点带来的好处，很容易被期限拉长一倍吃掉。
+ *
+ * 口径：`totalCost` 一律是「全部还款 − 到手现金 + 一次性成本」，两条路
+ * 用同一个口径，所以可以直接比。无抵押那条的手续费是从放款额里扣的，
+ * 于是本金大于债务额（要净到手 $30,000 就得借更多），这部分额外本金
+ * 产生的利息也算进了总代价 —— 那正是「折扣式手续费」的真实成本。
+ */
+export function debtConsolidation(
+  input: DebtConsolidationInput
+): DebtConsolidationResult {
+  const {
+    debtAmount,
+    unsecuredRatePct,
+    unsecuredMonths,
+    unsecuredFeePct,
+    securedRatePct,
+    securedClosingCost,
+    securedTermMonths,
+    monthlyIncome,
+  } = input;
+
+  const unsecuredPrincipal =
+    unsecuredFeePct >= 100 ? debtAmount : debtAmount / (1 - unsecuredFeePct / 100);
+  const unRun = runAmortization(
+    unsecuredPrincipal,
+    unsecuredRatePct,
+    Math.max(1, Math.round(unsecuredMonths))
+  );
+
+  const share = (payment: number) =>
+    monthlyIncome > 0 ? (payment / monthlyIncome) * 100 : 0;
+
+  const unsecured: ConsolidationRoute = {
+    label: "Unsecured personal loan",
+    months: unRun.months,
+    ratePct: unsecuredRatePct,
+    principal: unsecuredPrincipal,
+    cashReceived: debtAmount,
+    feeAmount: unsecuredPrincipal - debtAmount,
+    monthlyPayment: unRun.monthlyPayment,
+    totalPaid: unRun.totalPaid,
+    totalInterest: unRun.totalInterest,
+    totalCost: unRun.totalPaid - debtAmount,
+    paymentSharePct: share(unRun.monthlyPayment),
+  };
+
+  const secured: ConsolidationRoute[] = securedTermMonths.map((months) => {
+    const m = Math.max(1, Math.round(months));
+    const run = runAmortization(debtAmount, securedRatePct, m);
+    return {
+      label: `Home equity loan, ${m} months`,
+      months: run.months,
+      ratePct: securedRatePct,
+      principal: debtAmount,
+      cashReceived: debtAmount,
+      feeAmount: 0,
+      monthlyPayment: run.monthlyPayment,
+      totalPaid: run.totalPaid,
+      totalInterest: run.totalInterest,
+      totalCost: run.totalPaid - debtAmount + securedClosingCost,
+      paymentSharePct: share(run.monthlyPayment),
+    };
+  });
+
+  const all = [unsecured, ...secured];
+  const cheapestOverall = all.reduce((a, b) =>
+    b.totalCost < a.totalCost ? b : a
+  );
+  const firstCostlier = secured.find((s) => s.totalCost > unsecured.totalCost);
+
+  return {
+    debtAmount,
+    unsecured,
+    secured,
+    cheapestOverall,
+    securedCostlierFromMonths: firstCostlier ? firstCostlier.months : null,
+  };
+}
+
 export function formatMoney(v: number, fractionDigits = 2): string {
   if (!Number.isFinite(v)) return "$0";
   return v.toLocaleString("en-US", {

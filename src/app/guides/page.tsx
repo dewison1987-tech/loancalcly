@@ -12,7 +12,7 @@ export const metadata: Metadata = pageMetadata({
     "Plain-English guides to how loans actually work: amortization, APR versus interest rate, down payments, escrow, PMI, refinancing and closing costs.",
 });
 
-const REVIEWED = "October 9, 2026";
+const REVIEWED = "October 11, 2026";
 
 export default function GuidesIndex() {
   const schema = {
@@ -50,8 +50,8 @@ export default function GuidesIndex() {
 
       <H2>Where to start</H2>
       <P>
-        The nineteen guides are not a course to be read in order — they answer
-        nineteen different questions. Find the one closest to your situation:
+        The twenty-three guides are not a course to be read in order — they answer
+        twenty-three different questions. Find the one closest to your situation:
       </P>
       <DataTable
         head={["If your question is…", "Start here"]}

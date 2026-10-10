@@ -71,9 +71,15 @@ const STATIC_PAGES: Entry[] = [
   //   20 多个页面在同一天因为同一次批量改动全部变成同一天，正好就是我们
   //   前面花力气消除的那种噪声形态。代价最多是标题更新晚一次自然抓取，
   //   远小于 lastmod 整站失信的代价。
-  { path: "", priority: 1, changeFrequency: "weekly", lastModified: "2026-10-09" },
-  { path: "/calculators", priority: 0.9, changeFrequency: "weekly", lastModified: "2026-10-09" },
-  { path: "/guides", priority: 0.8, changeFrequency: "weekly", lastModified: "2026-10-09" },
+  // ⚠️ 2026-10-11 第六处（第 6 批）：又是这三个页面，同样是清单条数变化。
+  //   19 条变 23 条 → 首页 / /calculators / /guides 三页的可见文本都真的变了。
+  //   /guides 的导语也从 "nineteen" 改成了 "twenty-three"。
+  //   三个页面的 REVIEWED：只有 /guides 跟着走到 10-11（它自己的文字改了）；
+  //   首页与 /calculators 的 REVIEWED 仍停在 September 20 —— 变的是自动派生的
+  //   清单，不是这两页自己的文字。既有 19 篇指南的 `updated` 一律不动。
+  { path: "", priority: 1, changeFrequency: "weekly", lastModified: "2026-10-11" },
+  { path: "/calculators", priority: 0.9, changeFrequency: "weekly", lastModified: "2026-10-11" },
+  { path: "/guides", priority: 0.8, changeFrequency: "weekly", lastModified: "2026-10-11" },
   { path: "/methodology", priority: 0.6, changeFrequency: "monthly", lastModified: "2026-09-26" },
   { path: "/about", priority: 0.5, changeFrequency: "monthly", lastModified: "2026-09-26" },
   { path: "/contact", priority: 0.5, changeFrequency: "monthly", lastModified: "2026-09-25" },

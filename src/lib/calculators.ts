@@ -75,10 +75,12 @@ export const CALCULATORS: Calculator[] = [
     tag: "Property",
     cluster: "property",
     // 首付是这台计算器最关键的一个输入，所以第一顺位给首付指南
+    // 第六批：这台计算器回答的就是「能借多少」，而预批与预资格认定的
+    // 差额正是它的主题 → 挤掉 rent-vs-buy（那篇自己已有充足入链）
     related: [
       "how-much-house-can-i-afford",
       "how-much-down-payment-do-i-need",
-      "rent-vs-buy",
+      "mortgage-preapproval-vs-prequalification",
       "mortgage-calculator",
       "amortization-schedule",
       "personal-loan-calculator",
@@ -115,11 +117,13 @@ export const CALCULATORS: Calculator[] = [
     keyword: "personal loan calculator",
     tag: "Unsecured",
     cluster: "unsecured",
-    // 无抵押借款是「动用房产净值」的替代选项，所以第三条换成
+    // 无抵押借款是「动用房产净值」的替代选项，所以第三条是
     // cash-out vs HELOC —— 那篇正在比较「为了拿到 $60,000 该走哪条路」
+    // 第六批：债务合并是个人贷最典型的用途，与有抵押方案直接对照
+    // → 挤掉 how-to-compare-loan-offers（比较方法已有别的入口）
     related: [
       "apr-vs-interest-rate",
-      "how-to-compare-loan-offers",
+      "debt-consolidation-vs-home-equity-loan",
       "cash-out-refinance-vs-heloc",
       "auto-loan-calculator",
       "student-loan-calculator",
