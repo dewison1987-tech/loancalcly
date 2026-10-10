@@ -52,10 +52,12 @@ export const CALCULATORS: Calculator[] = [
     keyword: "mortgage calculator",
     tag: "Property",
     cluster: "property",
+    // 三条指南各自对应这台计算器的一类非本金输入：
+    //   首付金额 / 房产税 + 保险（进托管）/ 月供里的 PMI 项
     related: [
+      "how-much-down-payment-do-i-need",
+      "what-is-an-escrow-account",
       "how-to-remove-pmi",
-      "how-to-refinance-a-mortgage",
-      "fha-vs-conventional-loan",
       "home-affordability-calculator",
       "amortization-schedule",
       "personal-loan-calculator",
@@ -72,9 +74,10 @@ export const CALCULATORS: Calculator[] = [
     keyword: "how much house can i afford calculator",
     tag: "Property",
     cluster: "property",
+    // 首付是这台计算器最关键的一个输入，所以第一顺位给首付指南
     related: [
       "how-much-house-can-i-afford",
-      "fha-vs-conventional-loan",
+      "how-much-down-payment-do-i-need",
       "rent-vs-buy",
       "mortgage-calculator",
       "amortization-schedule",
@@ -112,10 +115,12 @@ export const CALCULATORS: Calculator[] = [
     keyword: "personal loan calculator",
     tag: "Unsecured",
     cluster: "unsecured",
+    // 无抵押借款是「动用房产净值」的替代选项，所以第三条换成
+    // cash-out vs HELOC —— 那篇正在比较「为了拿到 $60,000 该走哪条路」
     related: [
       "apr-vs-interest-rate",
       "how-to-compare-loan-offers",
-      "heloc-vs-home-equity-loan",
+      "cash-out-refinance-vs-heloc",
       "auto-loan-calculator",
       "student-loan-calculator",
       "mortgage-calculator",

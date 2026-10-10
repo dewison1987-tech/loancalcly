@@ -9,10 +9,10 @@ export const metadata: Metadata = pageMetadata({
   path: "/guides",
   title: "Loan Guides — Plain-English Explainers on Borrowing Costs",
   description:
-    "Plain-English guides to how loans work: amortization, APR versus interest rate, PMI, closing costs, debt-to-income, refinancing, FHA versus conventional, rent versus buy and paying a loan off early.",
+    "Plain-English guides to how loans work: amortization, APR versus interest rate, down payments, escrow, PMI, closing costs, debt-to-income, refinancing, fixed versus adjustable, FHA versus conventional, rent versus buy and paying a loan off early.",
 });
 
-const REVIEWED = "October 3, 2026";
+const REVIEWED = "October 9, 2026";
 
 export default function GuidesIndex() {
   const schema = {
@@ -50,8 +50,8 @@ export default function GuidesIndex() {
 
       <H2>Where to start</H2>
       <P>
-        The fifteen guides are not a course to be read in order — they answer
-        fifteen different questions. Find the one closest to your situation:
+        The nineteen guides are not a course to be read in order — they answer
+        nineteen different questions. Find the one closest to your situation:
       </P>
       <DataTable
         head={["If your question is…", "Start here"]}
@@ -145,6 +145,30 @@ export default function GuidesIndex() {
             "Should I take a HELOC or a fixed home equity loan?",
             <A key="q15" href="/heloc-vs-home-equity-loan">
               HELOC vs home equity loan
+            </A>,
+          ],
+          [
+            "How much cash do I actually need up front?",
+            <A key="q16" href="/how-much-down-payment-do-i-need">
+              How much down payment do I need?
+            </A>,
+          ],
+          [
+            "What is this escrow account my lender keeps mentioning?",
+            <A key="q17" href="/what-is-an-escrow-account">
+              What is an escrow account?
+            </A>,
+          ],
+          [
+            "Should I pull cash out by refinancing, or take a HELOC?",
+            <A key="q18" href="/cash-out-refinance-vs-heloc">
+              Cash-out refinance vs HELOC
+            </A>,
+          ],
+          [
+            "Is it worth taking a lower rate that changes after five years?",
+            <A key="q19" href="/fixed-vs-adjustable-rate-mortgage">
+              Fixed vs adjustable rate mortgage
             </A>,
           ],
         ]}

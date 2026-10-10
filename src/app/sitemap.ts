@@ -37,9 +37,22 @@ const STATIC_PAGES: Entry[] = [
   // "fifteen guides"。三个页面的日期同步到 10-03。
   // 注意：6 个计算器页的 `updated` **没有**跟着改 —— 它们的正文一字未动，
   // 变的只是页脚内链。批量刷新 lastmod 会让这个字段重新失去信息量。
-  { path: "", priority: 1, changeFrequency: "weekly", lastModified: "2026-10-03" },
-  { path: "/calculators", priority: 0.9, changeFrequency: "weekly", lastModified: "2026-10-03" },
-  { path: "/guides", priority: 0.8, changeFrequency: "weekly", lastModified: "2026-10-03" },
+  //
+  // ⚠️ 2026-10-09 第四处（第 5 批）：同样是这三个页面。
+  //   首页 / /calculators —— 指南清单 15 条变 19 条（`GUIDES.map` 渲染，
+  //     卡片与链接标题都是可见文本）→ 正文确实变了。
+  //   /guides —— 问句表 15 行变 19 行，导语 "fifteen" 改 "nineteen"。
+  // 与 10-03 一样：既有 15 篇指南的 `updated` 一律**不动**。第 5 批只改了
+  // 它们的 `related`（页脚内链），正文一字未改 —— 判据是「不看页脚，
+  // 读者在这一页看到的东西变了吗」。动了就等于这个字段又开始说假话。
+  //
+  // 另外注意三个页面的 `REVIEWED`（"Last reviewed"）常量与这里不同步：
+  // 首页与 /calculators 的 REVIEWED 停在 September 20 —— 变的是自动派生的
+  // 清单，不是这两页自己的文字，所以不算一次「复阅」。/guides 的导语与
+  // 表格确实重写过，REVIEWED 才跟着走到 10-09。
+  { path: "", priority: 1, changeFrequency: "weekly", lastModified: "2026-10-09" },
+  { path: "/calculators", priority: 0.9, changeFrequency: "weekly", lastModified: "2026-10-09" },
+  { path: "/guides", priority: 0.8, changeFrequency: "weekly", lastModified: "2026-10-09" },
   { path: "/methodology", priority: 0.6, changeFrequency: "monthly", lastModified: "2026-09-26" },
   { path: "/about", priority: 0.5, changeFrequency: "monthly", lastModified: "2026-09-26" },
   { path: "/contact", priority: 0.5, changeFrequency: "monthly", lastModified: "2026-09-25" },

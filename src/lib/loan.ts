@@ -796,6 +796,591 @@ export function rentVsBuy(input: RentVsBuyInput): RentVsBuyResult {
   };
 }
 
+/* ── 首付比例：同一套房、不同首付的实际代价 ───────────────────── */
+
+export type DownPaymentInput = {
+  homePrice: number;
+  /** 首付金额 */
+  downPayment: number;
+  annualRate: number;
+  years: number;
+  /**
+   * PMI 年率，占**原始贷款额**的 %。传 0 表示不建模。
+   * 真实费率随 LTV / 信用分 / 承保方浮动，因此这里只按调用方给的率算，
+   * 不内置任何「标准费率」。
+   */
+  annualPmiRatePct: number;
+  /** PMI 掉线的 LTV 门槛 %，默认 80 */
+  pmiDropLtvPct?: number;
+};
+
+export type DownPaymentPlan = {
+  downPayment: number;
+  downPaymentPct: number;
+  loanAmount: number;
+  monthlyPrincipalInterest: number;
+  monthlyPmi: number;
+  /** 本息 + PMI（不含房产税与保险） */
+  monthlyTotal: number;
+  totalInterest: number;
+  /** 实付总额 = 各期实付之和 = 贷款额 + 利息 */
+  totalPaid: number;
+  hasPmi: boolean;
+  /** 余额首次跌到门槛那个月；不收 PMI 时为 0 */
+  pmiDropMonth: number;
+  /** PMI 实际收取的月数 */
+  pmiMonthsCharged: number;
+  totalPmi: number;
+  /**
+   * 这档首付下的终身成本 = **房价 + 利息 + PMI**。
+   *
+   * 为什么是这个形式：首付与已还本金在两档之间自动抵消
+   * （首付 + 贷款额 = 房价，贷款额 + 利息 = 实付），所以终身成本里
+   * 只剩「房价 + 利息 + PMI」这一项会随首付变化。它直接可比，
+   * 不需要再对首付做时间价值折算 —— 折算留给 `downPaymentTradeoff`。
+   */
+  lifetimeCost: number;
+};
+
+export function downPaymentPlan(input: DownPaymentInput): DownPaymentPlan {
+  const { homePrice, downPayment, annualRate, years, annualPmiRatePct } = input;
+  const dropLtvPct = input.pmiDropLtvPct ?? 80;
+
+  const loanAmount = Math.max(0, homePrice - downPayment);
+  const months = Math.max(1, Math.round(years * 12));
+  const run = runAmortization(loanAmount, annualRate, months);
+
+  // PMI 只在 LTV 高于门槛时收。用「贷款额 > 门槛金额」判定而不是
+  // 让调用方自己传一个布尔值 —— 后者会在两档首付之间产生口径漂移。
+  const threshold = (homePrice * dropLtvPct) / 100;
+  const hasPmi = annualPmiRatePct > 0 && loanAmount > threshold;
+  const monthlyPmi = hasPmi
+    ? monthlyMortgageInsurance(loanAmount, annualPmiRatePct)
+    : 0;
+  const pmiDropMonth = hasPmi
+    ? monthsToBalance(loanAmount, annualRate, years, threshold)
+    : 0;
+  const pmiMonthsCharged = hasPmi ? pmiDropMonth : 0;
+  const totalPmi = monthlyPmi * pmiMonthsCharged;
+
+  return {
+    downPayment,
+    downPaymentPct: homePrice > 0 ? (downPayment / homePrice) * 100 : 0,
+    loanAmount,
+    monthlyPrincipalInterest: run.monthlyPayment,
+    monthlyPmi,
+    monthlyTotal: run.monthlyPayment + monthlyPmi,
+    totalInterest: run.totalInterest,
+    totalPaid: run.totalPaid,
+    hasPmi,
+    pmiDropMonth,
+    pmiMonthsCharged,
+    totalPmi,
+    lifetimeCost: homePrice + run.totalInterest + totalPmi,
+  };
+}
+
+export type DownPaymentTradeoffInput = {
+  /** 首付较少的那一档（贷款更多） */
+  lower: DownPaymentInput;
+  /** 首付较多的那一档 */
+  higher: DownPaymentInput;
+  /** 持有年数 —— 差额只在这段时间里累积，不是拿 30 年去比 */
+  holdYears: number;
+};
+
+export type DownPaymentTradeoff = {
+  /** 首付少的那一档留在手里的现金 */
+  cashKept: number;
+  /** 月供差（首付少的一方更贵） */
+  monthlyDifference: number;
+  /** 持有期内多付的利息 */
+  extraInterest: number;
+  /** 持有期内多付的 PMI */
+  extraPmi: number;
+  /** 上面两项之和 —— 这就是「不付那笔首付」的代价 */
+  extraCost: number;
+  /**
+   * 隐含年成本 %（简单口径）：把 extraCost 当作「少付的那笔首付」
+   * 在这段时间里的租金。它可以直接和「这笔钱拿去投资的收益率」比。
+   */
+  simpleAnnualCostPct: number;
+  /** 同上，复利口径 */
+  compoundAnnualCostPct: number;
+  lowerPaid: number;
+  higherPaid: number;
+  holdYears: number;
+};
+
+/**
+ * 「少付首付」这笔交易的隐含利率。
+ *
+ * 这是首付决策真正该问的问题，而不是「月供差多少」：少付 $40,000 首付
+ * 让你多背一笔贷款，这笔贷款在这段时间里向你收取的利息 + PMI，
+ * 就是那 $40,000 的代价。把它年化，才能与「这笔钱能赚多少」相比。
+ *
+ * 口径刻意只算到持有期结束，不算满 30 年 —— 拿 30 年的利息去否定
+ * 一笔只打算持有 7 年的差额，是把结论定死。
+ */
+export function downPaymentTradeoff(
+  input: DownPaymentTradeoffInput
+): DownPaymentTradeoff {
+  const { lower, higher } = input;
+  const holdYears = Math.max(1, Math.round(input.holdYears));
+  const holdMonths = holdYears * 12;
+
+  const lowerPlan = downPaymentPlan(lower);
+  const higherPlan = downPaymentPlan(higher);
+
+  const lowerRows = runAmortization(
+    lowerPlan.loanAmount,
+    lower.annualRate,
+    Math.max(1, Math.round(lower.years * 12))
+  ).rows.slice(0, holdMonths);
+  const higherRows = runAmortization(
+    higherPlan.loanAmount,
+    higher.annualRate,
+    Math.max(1, Math.round(higher.years * 12))
+  ).rows.slice(0, holdMonths);
+
+  const sum = (rows: PaymentRow[], key: "interest" | "payment") =>
+    rows.reduce((s, r) => s + r[key], 0);
+
+  const lowerInterest = sum(lowerRows, "interest");
+  const higherInterest = sum(higherRows, "interest");
+  const lowerPaid = sum(lowerRows, "payment");
+  const higherPaid = sum(higherRows, "payment");
+
+  const pmiWithin = (p: DownPaymentPlan) =>
+    p.monthlyPmi * Math.min(holdMonths, p.pmiMonthsCharged);
+
+  const extraInterest = lowerInterest - higherInterest;
+  const extraPmi = pmiWithin(lowerPlan) - pmiWithin(higherPlan);
+  const extraCost = extraInterest + extraPmi;
+
+  const cashKept = higherPlan.downPayment - lowerPlan.downPayment;
+  const ratio = cashKept > 0 ? extraCost / cashKept : 0;
+
+  return {
+    cashKept,
+    monthlyDifference:
+      lowerPlan.monthlyPrincipalInterest - higherPlan.monthlyPrincipalInterest,
+    extraInterest,
+    extraPmi,
+    extraCost,
+    simpleAnnualCostPct: cashKept > 0 ? (ratio / holdYears) * 100 : 0,
+    compoundAnnualCostPct:
+      cashKept > 0 && 1 + ratio > 0
+        ? (Math.pow(1 + ratio, 1 / holdYears) - 1) * 100
+        : 0,
+    lowerPaid,
+    higherPaid,
+    holdYears,
+  };
+}
+
+/* ── 托管账户：月供里不还债的那一部分 ──────────────────────────── */
+
+export type EscrowInput = {
+  homePrice: number;
+  loanAmount: number;
+  annualRate: number;
+  years: number;
+  /** 房产税年率，占**房价**的 % */
+  annualTaxRatePct: number;
+  /** 房屋保险年额 */
+  annualInsurance: number;
+  /**
+   * 托管缓冲月数。美国服务规则允许服务商最多保留相当于年度支出 1/6
+   * （即 2 个月）的缓冲 —— 这里不内置默认值以外的东西，具体以 CFPB 的
+   * 服务规则与你的贷款文件为准。
+   */
+  cushionMonths?: number;
+};
+
+export type EscrowBreakdown = {
+  monthlyPrincipalInterest: number;
+  monthlyTax: number;
+  monthlyInsurance: number;
+  /** 托管账户每月收取的部分 = 房产税 + 保险 */
+  monthlyEscrow: number;
+  monthlyTotal: number;
+  /** 每年从托管账户一次性付出的总额（税单 + 保费） */
+  annualDisbursement: number;
+  /** 托管占月供的比重 % */
+  escrowSharePct: number;
+  cushionMonths: number;
+  cushionAmount: number;
+  /** 一年里从你账上收进托管的总数（等于年支出，缓冲只在开户时收一次） */
+  annualCollection: number;
+};
+
+export function escrowBreakdown(input: EscrowInput): EscrowBreakdown {
+  const {
+    homePrice,
+    loanAmount,
+    annualRate,
+    years,
+    annualTaxRatePct,
+    annualInsurance,
+  } = input;
+  const cushionMonths = input.cushionMonths ?? 2;
+
+  const monthlyPrincipalInterest = scheduledPayment(
+    loanAmount,
+    annualRate,
+    Math.max(1, Math.round(years * 12))
+  );
+  const monthlyTax = monthlyPropertyTax(homePrice, annualTaxRatePct);
+  const monthlyInsurance = annualInsurance / 12;
+  const monthlyEscrow = monthlyTax + monthlyInsurance;
+  const monthlyTotal = monthlyPrincipalInterest + monthlyEscrow;
+  const annualDisbursement = monthlyEscrow * 12;
+
+  return {
+    monthlyPrincipalInterest,
+    monthlyTax,
+    monthlyInsurance,
+    monthlyEscrow,
+    monthlyTotal,
+    annualDisbursement,
+    escrowSharePct: monthlyTotal > 0 ? (monthlyEscrow / monthlyTotal) * 100 : 0,
+    cushionMonths,
+    cushionAmount: (annualDisbursement / 12) * cushionMonths,
+    annualCollection: annualDisbursement,
+  };
+}
+
+export type EscrowShortfallInput = {
+  monthlyTax: number;
+  monthlyInsurance: number;
+  /** 税单（或保费）上涨幅度 % */
+  taxIncreasePct: number;
+  /** 缺口允许分摊的月数，服务规则要求不少于 12 个月 */
+  spreadMonths?: number;
+};
+
+export type EscrowShortfall = {
+  monthlyEscrowBefore: number;
+  monthlyEscrowAfter: number;
+  /** 上涨后每月稳定多掏的钱 */
+  monthlyIncrease: number;
+  annualDisbursementIncrease: number;
+  /** 服务商替你垫出去、但你还没缴进托管的那部分 */
+  shortageAmount: number;
+  /** 缺口按月分摊后每月再加的钱 */
+  shortageSpreadMonthly: number;
+  /** 上涨后第一年的实际月供增量 = 新税摊入 + 缺口分摊 */
+  firstYearIncrease: number;
+  /** 缺口摊完之后剩下的月供增量 */
+  steadyIncrease: number;
+};
+
+/**
+ * 税单或保费上涨之后，月供会发生什么。
+ *
+ * 值得单独建模的原因：上涨当年月供是**涨两次**的。服务商已经按新税单
+ * 足额付出去，但你的月缴额还是旧数 —— 这笔垫款是缺口，规则允许它摊到
+ * 至少 12 个月上加收。于是第一年的增量约为稳定增量的两倍，
+ * 而绝大多数人只预期到后者。
+ */
+export function escrowShortfall(
+  input: EscrowShortfallInput
+): EscrowShortfall {
+  const { monthlyTax, monthlyInsurance, taxIncreasePct } = input;
+  const spreadMonths = Math.max(1, Math.round(input.spreadMonths ?? 12));
+
+  const monthlyEscrowBefore = monthlyTax + monthlyInsurance;
+  const monthlyEscrowAfter =
+    monthlyTax * (1 + taxIncreasePct / 100) + monthlyInsurance;
+  const monthlyIncrease = monthlyEscrowAfter - monthlyEscrowBefore;
+  const annualDisbursementIncrease = monthlyIncrease * 12;
+  const shortageSpreadMonthly = annualDisbursementIncrease / spreadMonths;
+
+  return {
+    monthlyEscrowBefore,
+    monthlyEscrowAfter,
+    monthlyIncrease,
+    annualDisbursementIncrease,
+    shortageAmount: annualDisbursementIncrease,
+    shortageSpreadMonthly,
+    firstYearIncrease: monthlyIncrease + shortageSpreadMonthly,
+    steadyIncrease: monthlyIncrease,
+  };
+}
+
+/* ── 取现金的两条路：cash-out 再融资 vs HELOC ──────────────────── */
+
+export type CashOutVsHelocInput = {
+  /** 现在的房价 */
+  homeValue: number;
+  /** 现有第一顺位贷款的余额 */
+  existingBalance: number;
+  /** 现有贷款利率 % */
+  existingRatePct: number;
+  /** 现有贷款的剩余月数 */
+  existingRemainingMonths: number;
+  /** 想拿出来的现金 */
+  cashOut: number;
+  /** cash-out 再融资的新利率 % */
+  cashOutRatePct: number;
+  /** cash-out 再融资的新期限（月） */
+  cashOutMonths: number;
+  /** HELOC 利率 % */
+  helocRatePct: number;
+  /** HELOC 只付息的提取期（月） */
+  helocDrawMonths: number;
+  /** HELOC 的摊还还款期（月） */
+  helocRepayMonths: number;
+};
+
+export type CashOutVsHelocResult = {
+  /* cash-out 路径 */
+  cashOutLoanAmount: number;
+  cashOutLtvPct: number;
+  cashOutMonthlyPayment: number;
+  cashOutTotalInterest: number;
+  cashOutTotalPaid: number;
+  /**
+   * 按「新钱占新贷款额的比例」把总利息线性拆成两部分。
+   *
+   * 这个拆分是**精确**的而不是近似：同一笔贷款、同一利率、同一摊销表，
+   * 各笔本金按比例同步摊还，所以利息也严格按本金比例分配。
+   * 它回答的正是那个关键问题 —— 你为「多借的那 $60,000」付了多少，
+   * 又为「本来就有、但被重新定价的那部分」付了多少。
+   */
+  cashOutInterestOnNewMoney: number;
+  cashOutInterestOnExisting: number;
+
+  /* HELOC 路径 */
+  firstLienMonthlyPayment: number;
+  firstLienInterest: number;
+  helocDrawPayment: number;
+  helocRepayPayment: number;
+  /** 提取期结束、进入摊还后月供的涨幅 % */
+  helocPaymentIncreasePct: number;
+  helocInterestDuringDraw: number;
+  helocInterestDuringRepay: number;
+  helocTotalInterest: number;
+
+  /* 现金流 */
+  cashOutMonthlyOutlay: number;
+  helocMonthlyOutlay: number;
+  monthlyDifference: number;
+
+  /* 结论 */
+  totalInterestDifference: number;
+  cheaperOverall: "cashOut" | "heloc";
+  /** 只看「新借的那笔钱」，哪条路更便宜 */
+  cheaperOnNewMoney: "cashOut" | "heloc";
+};
+
+/**
+ * 从房子里取一笔现金，两条路的总代价。
+ *
+ * 这个对比的陷阱在于：cash-out 再融资看起来只是「多借 $60,000」，
+ * 实际上它把**整笔余额**按新利率、新期限重新定价了一遍。所以必须
+ * 把利息拆成「新钱」与「原有余额」两块，否则会得出
+ * 「cash-out 更便宜」这个在总额上完全站不住的结论。
+ *
+ * 两条路径在同一观察期（= HELOC 提取期 + 还款期）内都归零，
+ * 因此总利息可以直接比。
+ */
+export function cashOutVsHeloc(
+  input: CashOutVsHelocInput
+): CashOutVsHelocResult {
+  const {
+    homeValue,
+    existingBalance,
+    existingRatePct,
+    existingRemainingMonths,
+    cashOut,
+    cashOutRatePct,
+    cashOutMonths,
+    helocRatePct,
+    helocDrawMonths,
+    helocRepayMonths,
+  } = input;
+
+  const cashOutLoanAmount = existingBalance + cashOut;
+  const co = runAmortization(cashOutLoanAmount, cashOutRatePct, cashOutMonths);
+
+  const first = runAmortization(
+    existingBalance,
+    existingRatePct,
+    existingRemainingMonths
+  );
+
+  // HELOC：提取期只付息，余额原地不动；还款期才把它摊平
+  const helocDrawPayment = (cashOut * helocRatePct) / 100 / 12;
+  const helocInterestDuringDraw = helocDrawPayment * helocDrawMonths;
+  const repay = runAmortization(cashOut, helocRatePct, helocRepayMonths);
+
+  const newShare = cashOutLoanAmount > 0 ? cashOut / cashOutLoanAmount : 0;
+  const cashOutInterestOnNewMoney = co.totalInterest * newShare;
+
+  const helocTotalInterest = helocInterestDuringDraw + repay.totalInterest;
+  const helocPathInterest = first.totalInterest + helocTotalInterest;
+
+  const cashOutMonthlyOutlay = co.monthlyPayment;
+  const helocMonthlyOutlay = first.monthlyPayment + helocDrawPayment;
+
+  return {
+    cashOutLoanAmount,
+    cashOutLtvPct: homeValue > 0 ? (cashOutLoanAmount / homeValue) * 100 : 0,
+    cashOutMonthlyPayment: co.monthlyPayment,
+    cashOutTotalInterest: co.totalInterest,
+    cashOutTotalPaid: co.totalPaid,
+    cashOutInterestOnNewMoney,
+    cashOutInterestOnExisting: co.totalInterest - cashOutInterestOnNewMoney,
+
+    firstLienMonthlyPayment: first.monthlyPayment,
+    firstLienInterest: first.totalInterest,
+    helocDrawPayment,
+    helocRepayPayment: repay.monthlyPayment,
+    helocPaymentIncreasePct:
+      helocDrawPayment > 0
+        ? ((repay.monthlyPayment - helocDrawPayment) / helocDrawPayment) * 100
+        : 0,
+    helocInterestDuringDraw,
+    helocInterestDuringRepay: repay.totalInterest,
+    helocTotalInterest,
+
+    cashOutMonthlyOutlay,
+    helocMonthlyOutlay,
+    monthlyDifference: helocMonthlyOutlay - cashOutMonthlyOutlay,
+
+    totalInterestDifference: helocPathInterest - co.totalInterest,
+    cheaperOverall: co.totalInterest <= helocPathInterest ? "cashOut" : "heloc",
+    cheaperOnNewMoney:
+      cashOutInterestOnNewMoney <= helocTotalInterest ? "cashOut" : "heloc",
+  };
+}
+
+/* ── 固定利率 vs 可调利率 ─────────────────────────────────────── */
+
+export type ArmInput = {
+  loanAmount: number;
+  /** 固定期内的初始利率 % */
+  introRatePct: number;
+  /** 固定期月数 */
+  introMonths: number;
+  /** 重设后的利率 % */
+  adjustedRatePct: number;
+  /** 总期限（月） */
+  totalMonths: number;
+  /** 对照用的同额固定利率 % */
+  compareFixedRatePct: number;
+};
+
+export type ArmResult = {
+  introPayment: number;
+  balanceAtReset: number;
+  paymentAfterReset: number;
+  paymentChange: number;
+  paymentChangePct: number;
+  interestDuringIntro: number;
+  interestAfterReset: number;
+  totalInterest: number;
+  totalPaid: number;
+
+  /* 同额固定利率对照 */
+  fixedPayment: number;
+  fixedBalanceAtReset: number;
+  fixedTotalInterest: number;
+  fixedTotalPaid: number;
+
+  /** ARM 相对同额固定：正数 = ARM 更贵 */
+  interestDifference: number;
+  cheaper: "arm" | "fixed";
+  /** 固定期内靠低利率省下的现金 */
+  savingDuringIntro: number;
+  /** 重设后每月比固定多付的金额（可为负） */
+  monthlyIncreaseAfterReset: number;
+  /**
+   * 固定期攒下的月供优势被重设后的高月供吃光需要多少个月。
+   * 重设后月供不高于固定月供时为 null（那就吃不光）。
+   */
+  monthsToEraseSaving: number | null;
+  /** 重设时 ARM 的余额比固定少多少（正数 = ARM 领先） */
+  balanceAdvantageAtReset: number;
+};
+
+/**
+ * 可调利率贷款的确定性模型：固定期按 intro 利率摊销，
+ * 重设日把**当时余额**按 adjusted 利率在剩余期限内重新摊销。
+ *
+ * 刻意不做「利率上限」「后续每年再调整」这类叠加假设：多一个假设就
+ * 多一处三套实现可能分歧的地方，而结论的方向由第一次重设幅度决定，
+ * 不会因为第二次重设而反转。不确定性用「同一套算例扫一遍重设利率」
+ * 来表达（见页面上的敏感度表），而不是往模型里塞更多参数。
+ */
+export function armMortgage(input: ArmInput): ArmResult {
+  const {
+    loanAmount,
+    introRatePct,
+    adjustedRatePct,
+    compareFixedRatePct,
+  } = input;
+  const introMonths = Math.max(0, Math.round(input.introMonths));
+  const totalMonths = Math.max(1, Math.round(input.totalMonths));
+
+  const introRun = runAmortization(loanAmount, introRatePct, totalMonths);
+  const introRows = introRun.rows.slice(0, introMonths);
+  const interestDuringIntro = introRows.reduce((s, r) => s + r.interest, 0);
+  const balanceAtReset =
+    introRows.length > 0
+      ? introRows[introRows.length - 1].balance
+      : loanAmount;
+
+  const remaining = Math.max(1, totalMonths - introMonths);
+  const afterRun = runAmortization(balanceAtReset, adjustedRatePct, remaining);
+
+  const fixedRun = runAmortization(loanAmount, compareFixedRatePct, totalMonths);
+  const fixedRows = fixedRun.rows.slice(0, introMonths);
+  const fixedBalanceAtReset =
+    fixedRows.length > 0 ? fixedRows[fixedRows.length - 1].balance : loanAmount;
+
+  const totalInterest = interestDuringIntro + afterRun.totalInterest;
+  const totalPaid = introRun.monthlyPayment * introMonths + afterRun.totalPaid;
+  const monthlyIncreaseAfterReset =
+    afterRun.monthlyPayment - fixedRun.monthlyPayment;
+  const savingDuringIntro =
+    (fixedRun.monthlyPayment - introRun.monthlyPayment) * introMonths;
+
+  return {
+    introPayment: introRun.monthlyPayment,
+    balanceAtReset,
+    paymentAfterReset: afterRun.monthlyPayment,
+    paymentChange: afterRun.monthlyPayment - introRun.monthlyPayment,
+    paymentChangePct:
+      introRun.monthlyPayment > 0
+        ? ((afterRun.monthlyPayment - introRun.monthlyPayment) /
+            introRun.monthlyPayment) *
+          100
+        : 0,
+    interestDuringIntro,
+    interestAfterReset: afterRun.totalInterest,
+    totalInterest,
+    totalPaid,
+
+    fixedPayment: fixedRun.monthlyPayment,
+    fixedBalanceAtReset,
+    fixedTotalInterest: fixedRun.totalInterest,
+    fixedTotalPaid: fixedRun.totalPaid,
+
+    interestDifference: totalInterest - fixedRun.totalInterest,
+    cheaper: totalInterest <= fixedRun.totalInterest ? "arm" : "fixed",
+    savingDuringIntro,
+    monthlyIncreaseAfterReset,
+    monthsToEraseSaving:
+      monthlyIncreaseAfterReset > 0
+        ? savingDuringIntro / monthlyIncreaseAfterReset
+        : null,
+    balanceAdvantageAtReset: fixedBalanceAtReset - balanceAtReset,
+  };
+}
+
 export function formatMoney(v: number, fractionDigits = 2): string {
   if (!Number.isFinite(v)) return "$0";
   return v.toLocaleString("en-US", {

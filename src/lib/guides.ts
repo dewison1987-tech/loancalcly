@@ -18,6 +18,14 @@
  * 原因只是它在 `CALCULATORS` 数组里排得靠前。**这正是「拓扑从数组位置里
  * 长出来」的同一个病**，只不过这次是从另一个方向长。
  * 所以：想推荐什么就写下来，数量写满，不留兜底的口子。
+ *
+ * ⚠️ **加完新页面必须回填既有页面的 `related`（2026-10-09 第五批）**：
+ * 只往数组末尾追加一条新指南**不会让它自动出现在任何地方**。
+ * `pick()` 只读被访问页面的 `related`，所以新页面要拿到内链，
+ * 就必须有别的页面**写下来**指向它。第五批 4 条新指南分别从
+ * 4–5 个既有页面被显式引用（见各条 related），没有一条是孤儿。
+ * 回填时挤掉的是原本排在那条 `related` 里的页面 —— 判断依据是
+ * 「这条关系是否比被挤掉的那条更近」，不是「把新页面塞进去就行」。
  */
 export type GuideCluster =
   | "borrowing-basics"
@@ -74,9 +82,9 @@ export const GUIDES: Guide[] = [
     cluster: "borrowing-basics",
     related: [
       "apr-vs-interest-rate",
+      "fixed-vs-adjustable-rate-mortgage",
       "closing-costs-explained",
       "how-loan-amortization-works",
-      "heloc-vs-home-equity-loan",
       "mortgage-calculator",
       "personal-loan-calculator",
       "auto-loan-calculator",
@@ -92,8 +100,8 @@ export const GUIDES: Guide[] = [
     cluster: "borrowing-basics",
     related: [
       "how-to-compare-loan-offers",
+      "fixed-vs-adjustable-rate-mortgage",
       "closing-costs-explained",
-      "how-loan-amortization-works",
       "heloc-vs-home-equity-loan",
       "personal-loan-calculator",
       "auto-loan-calculator",
@@ -128,9 +136,9 @@ export const GUIDES: Guide[] = [
     cluster: "mortgage",
     related: [
       "how-to-refinance-a-mortgage",
+      "cash-out-refinance-vs-heloc",
       "closing-costs-explained",
       "15-vs-30-year-mortgage",
-      "how-to-compare-loan-offers",
       "mortgage-calculator",
       "amortization-schedule",
       "home-affordability-calculator",
@@ -145,7 +153,7 @@ export const GUIDES: Guide[] = [
     keyword: "15 vs 30 year mortgage",
     cluster: "mortgage",
     related: [
-      "how-to-remove-pmi",
+      "fixed-vs-adjustable-rate-mortgage",
       "debt-to-income-ratio",
       "how-much-house-can-i-afford",
       "rent-vs-buy",
@@ -165,7 +173,7 @@ export const GUIDES: Guide[] = [
     related: [
       "debt-to-income-ratio",
       "15-vs-30-year-mortgage",
-      "how-to-compare-loan-offers",
+      "how-much-down-payment-do-i-need",
       "rent-vs-buy",
       "home-affordability-calculator",
       "mortgage-calculator",
@@ -182,7 +190,7 @@ export const GUIDES: Guide[] = [
     cluster: "mortgage",
     related: [
       "how-much-house-can-i-afford",
-      "15-vs-30-year-mortgage",
+      "how-much-down-payment-do-i-need",
       "how-to-pay-off-a-loan-early",
       "fha-vs-conventional-loan",
       "mortgage-calculator",
@@ -201,8 +209,8 @@ export const GUIDES: Guide[] = [
     related: [
       "how-much-house-can-i-afford",
       "how-to-remove-pmi",
+      "what-is-an-escrow-account",
       "fha-vs-conventional-loan",
-      "15-vs-30-year-mortgage",
       "home-affordability-calculator",
       "mortgage-calculator",
       "personal-loan-calculator",
@@ -218,9 +226,9 @@ export const GUIDES: Guide[] = [
     cluster: "mortgage",
     related: [
       "how-to-refinance-a-mortgage",
+      "what-is-an-escrow-account",
       "how-to-compare-loan-offers",
       "refinance-break-even-point",
-      "apr-vs-interest-rate",
       "mortgage-calculator",
       "personal-loan-calculator",
       "amortization-schedule",
@@ -236,9 +244,9 @@ export const GUIDES: Guide[] = [
     cluster: "borrowing-basics",
     related: [
       "how-loan-amortization-works",
+      "cash-out-refinance-vs-heloc",
       "biweekly-payments-guide",
       "heloc-vs-home-equity-loan",
-      "how-to-compare-loan-offers",
       "amortization-schedule",
       "student-loan-calculator",
       "mortgage-calculator",
@@ -254,9 +262,9 @@ export const GUIDES: Guide[] = [
     cluster: "mortgage",
     related: [
       "refinance-break-even-point",
+      "cash-out-refinance-vs-heloc",
+      "fixed-vs-adjustable-rate-mortgage",
       "closing-costs-explained",
-      "15-vs-30-year-mortgage",
-      "how-to-compare-loan-offers",
       "mortgage-calculator",
       "amortization-schedule",
       "home-affordability-calculator",
@@ -272,9 +280,9 @@ export const GUIDES: Guide[] = [
     cluster: "mortgage",
     related: [
       "how-to-remove-pmi",
+      "how-much-down-payment-do-i-need",
       "debt-to-income-ratio",
       "how-much-house-can-i-afford",
-      "15-vs-30-year-mortgage",
       "mortgage-calculator",
       "home-affordability-calculator",
       "amortization-schedule",
@@ -290,9 +298,9 @@ export const GUIDES: Guide[] = [
     cluster: "buying",
     related: [
       "how-much-house-can-i-afford",
-      "15-vs-30-year-mortgage",
+      "how-much-down-payment-do-i-need",
+      "what-is-an-escrow-account",
       "debt-to-income-ratio",
-      "how-to-pay-off-a-loan-early",
       "home-affordability-calculator",
       "mortgage-calculator",
       "amortization-schedule",
@@ -307,15 +315,87 @@ export const GUIDES: Guide[] = [
     keyword: "heloc vs home equity loan",
     cluster: "equity",
     related: [
+      "cash-out-refinance-vs-heloc",
       "apr-vs-interest-rate",
       "how-to-compare-loan-offers",
-      "how-to-pay-off-a-loan-early",
       "how-loan-amortization-works",
       "personal-loan-calculator",
       "amortization-schedule",
       "mortgage-calculator",
     ],
     updated: "2026-10-03",
+  },
+  {
+    slug: "how-much-down-payment-do-i-need",
+    title: "How much down payment do I need?",
+    summary:
+      "What 3.5%, 10% and 20% down really cost: 20% down saves $105,249 over the life of the loan, while the $40,000 you keep back is worth an implied 10.72% a year over seven.",
+    keyword: "how much down payment do i need",
+    cluster: "buying",
+    related: [
+      "how-to-remove-pmi",
+      "fha-vs-conventional-loan",
+      "how-much-house-can-i-afford",
+      "what-is-an-escrow-account",
+      "home-affordability-calculator",
+      "mortgage-calculator",
+      "amortization-schedule",
+    ],
+    updated: "2026-10-09",
+  },
+  {
+    slug: "what-is-an-escrow-account",
+    title: "What is an escrow account?",
+    summary:
+      "What actually flows through it, how the cushion is set, and why a 10% tax rise costs $40 a month once the account settles but $80 a month in the first year.",
+    keyword: "what is an escrow account",
+    cluster: "buying",
+    related: [
+      "closing-costs-explained",
+      "how-much-down-payment-do-i-need",
+      "how-much-house-can-i-afford",
+      "rent-vs-buy",
+      "mortgage-calculator",
+      "home-affordability-calculator",
+      "amortization-schedule",
+    ],
+    updated: "2026-10-09",
+  },
+  {
+    slug: "cash-out-refinance-vs-heloc",
+    title: "Cash-out refinance vs HELOC",
+    summary:
+      "A cash-out refinance looks cheaper but reprices the loan you already had: $110,405 more interest in total, with a monthly payment $257.47 lower than the HELOC route.",
+    keyword: "cash out refinance vs heloc",
+    cluster: "equity",
+    related: [
+      "heloc-vs-home-equity-loan",
+      "how-to-refinance-a-mortgage",
+      "refinance-break-even-point",
+      "closing-costs-explained",
+      "mortgage-calculator",
+      "amortization-schedule",
+      "personal-loan-calculator",
+    ],
+    updated: "2026-10-09",
+  },
+  {
+    slug: "fixed-vs-adjustable-rate-mortgage",
+    title: "Fixed vs adjustable rate mortgage",
+    summary:
+      "An ARM saves $104.06 a month for five years and hands it back in 35 months if the rate resets to 7.50%. The whole sensitivity table, from 6.00% to 8.00%.",
+    keyword: "fixed vs adjustable rate mortgage",
+    cluster: "mortgage",
+    related: [
+      "how-to-refinance-a-mortgage",
+      "15-vs-30-year-mortgage",
+      "apr-vs-interest-rate",
+      "how-to-compare-loan-offers",
+      "mortgage-calculator",
+      "amortization-schedule",
+      "home-affordability-calculator",
+    ],
+    updated: "2026-10-09",
   },
 ];
 
