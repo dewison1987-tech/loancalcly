@@ -24,3 +24,43 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/*
+ * ⚠️ 修「整页被撑宽、手机端被缩到约一半」——2026-10-11 定位并修复。
+ *
+ * 症状：任何含 DataTable 的页面在 390px 视口下 `documentElement.scrollWidth`
+ * 是 **768** 而不是 390，整页被浏览器缩小渲染。线上（commit d6e4993）实测
+ * /how-to-remove-pmi 同样是 768 —— 这是既有缺陷，不是某一批内容引入的。
+ *
+ * 成因：
+ *   ① `body` 是 `min-h-full flex flex-col`（为了让页脚 `mt-auto` 贴底），
+ *      于是 `main` 是**列向 flex 容器的子项**；
+ *   ② `main` 自身只有 `mx-auto max-w-3xl`（max-width: 768px），`width` 是 auto；
+ *      在这种组合下 Chrome 把它的宽度算成 **fit-content（768）**，
+ *      而不是收缩到容器的 390；
+ *   ③ DataTable 的单元格带 `whitespace-nowrap`，一张 8 列表的 fit-content
+ *      恰好约 768 → main 就此停在 768，横向溢出，浏览器为了显示全部内容
+ *      把整页缩到约 51%。
+ *
+ * ⚠️ 外层 `.overflow-x-auto` 救不了：它自己也被撑到 736px，
+ *   根本没有机会产生滚动条。
+ *
+ * ⚠️ **`min-width: 0` 单独用是无效的**（常见但错的直觉）。390px 下逐一实测：
+ *
+ *     基线                                 html 768/390  main 768
+ *     main{min-width:0 !important}         html 768/390  main 768   ← 无效
+ *     main{overflow-x:hidden}              html 768/390  main 768   ← 无效
+ *     .overflow-x-auto{max-width:100%}     html 768/390  main 768   ← 无效
+ *     body{display:block}                  html 390/390  main 390   ← 证明成因在 flex 容器
+ *     main{width:100%}                     html 390/390  main 390   ← 采用
+ *
+ * 所以修法是给 `main` 一个**确定的宽度**，而不是改最小尺寸。宽屏上
+ * `max-w-3xl` / `max-w-5xl` 依旧封顶、`mx-auto` 依旧居中，行为不变。
+ *
+ * 回归守卫：360/390px 下 `documentElement.scrollWidth === clientWidth`
+ * 且 `main` 宽度 == 视口宽度；同时 `.overflow-x-auto` 内部
+ * `scrollWidth > clientWidth`（说明宽表格在自己的框里横向滚动）。
+ */
+main {
+  width: 100%;
+}
