@@ -59,7 +59,8 @@ export const CALCULATORS: Calculator[] = [
       "what-is-an-escrow-account",
       "how-to-remove-pmi",
       "home-affordability-calculator",
-      "amortization-schedule",
+      // 第七批：月供算完，下一个真实问题通常是租还是买
+      "rent-vs-buy-calculator",
       "personal-loan-calculator",
       "auto-loan-calculator",
     ],
@@ -82,7 +83,9 @@ export const CALCULATORS: Calculator[] = [
       "how-much-down-payment-do-i-need",
       "mortgage-preapproval-vs-prequalification",
       "mortgage-calculator",
-      "amortization-schedule",
+      // 第七批：「买得起多少」之后紧接着就是「该不该买」。
+      // 挤掉 amortization-schedule（26 条入链，全站最富余）。
+      "rent-vs-buy-calculator",
       "personal-loan-calculator",
       "auto-loan-calculator",
     ],
@@ -171,6 +174,32 @@ export const CALCULATORS: Calculator[] = [
       "student-loan-calculator",
     ],
     updated: "2026-09-26",
+  },
+  {
+    slug: "rent-vs-buy-calculator",
+    title: "Rent vs buy calculator",
+    h1: "Rent vs Buy Calculator",
+    summary:
+      "The full cost of owning against renting and investing the difference, with the year owning overtakes — and a sensitivity check on the two assumptions the answer actually rests on.",
+    keyword: "rent vs buy calculator",
+    tag: "Property",
+    cluster: "property",
+    // 三篇指南各对应这台计算器的一类输入或一种读法：
+    //   rent-vs-buy 是同主题的静态版本（同参数、同结论，第 11 年）
+    //   how-much-house-can-i-afford 决定「买得起多少」，本页决定「该不该买」
+    //   how-loan-amortization-works 解释临界年为什么那么晚（早期几乎全是利息）
+    // 计算器四位：可负担性（前置问题）、房贷（月供本体）、摊销（余额怎么降）、
+    // 个人贷（把差额投出去时常见的现金贷对照）
+    related: [
+      "rent-vs-buy",
+      "how-much-house-can-i-afford",
+      "how-loan-amortization-works",
+      "home-affordability-calculator",
+      "mortgage-calculator",
+      "amortization-schedule",
+      "personal-loan-calculator",
+    ],
+    updated: "2026-11-10",
   },
 ];
 

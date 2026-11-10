@@ -572,6 +572,22 @@ export type RentVsBuyResult = {
   holdYears: number;
   holdMonths: number;
   monthlyPrincipalInterest: number;
+  /** 首付占房价的 % */
+  downPaymentPct: number;
+  /**
+   * 首年（**未计通胀**）的月度持有成本拆分。
+   *
+   * 为什么必须有这组输出：`paidTax` 一类是**整个持有期的累计值**，用它除以 12
+   * 得到的是「平均每月」，不是首年每月 —— 15 年期下二者相差数倍。页面若自己
+   * 拿累计值去除，读者看到的月度税会是真实值的十几倍。这里直接给出首年基数，
+   * 页面只取数、不做除法。
+   */
+  firstYearMonthlyTax: number;
+  firstYearMonthlyInsurance: number;
+  firstYearMonthlyMaintenance: number;
+  firstYearMonthlyHoa: number;
+  /** 首年月度总持有成本 = 本息 + 税 + 保险 + HOA + 维护 */
+  firstYearMonthlyHousing: number;
   /** 首付 + 买入交易成本 */
   upfrontCash: number;
 
@@ -742,6 +758,12 @@ function rentVsBuyCore(
     holdYears: holdMonths / 12,
     holdMonths,
     monthlyPrincipalInterest: payment,
+    downPaymentPct: homePrice > 0 ? (downPayment / homePrice) * 100 : 0,
+    firstYearMonthlyTax: baseTax,
+    firstYearMonthlyInsurance: baseIns,
+    firstYearMonthlyMaintenance: baseMaint,
+    firstYearMonthlyHoa: monthlyHoa,
+    firstYearMonthlyHousing: payment + baseTax + baseIns + monthlyHoa + baseMaint,
     upfrontCash,
     paidInterest,
     paidPrincipal,

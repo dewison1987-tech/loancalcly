@@ -323,7 +323,10 @@ export const GUIDES: Guide[] = [
       "debt-to-income-ratio",
       "home-affordability-calculator",
       "mortgage-calculator",
-      "amortization-schedule",
+      // 第七批：同主题的交互版（同参数、同结论），读者看完静态逐年表
+      // 正好可以去改假设。挤掉 amortization-schedule —— 它当时有 26 条入链，
+      // 是全站最富余的一个，挨刀不伤拓扑。
+      "rent-vs-buy-calculator",
     ],
     updated: "2026-10-03",
   },
